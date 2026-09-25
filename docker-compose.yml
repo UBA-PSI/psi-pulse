@@ -1,0 +1,32 @@
+services:
+  pulse-app:
+    build:
+      context: .
+    container_name: web
+    restart: always
+    ports:
+      - "8080:3000"
+    environment:
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@postgres:5432/postgres
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      HOST_URL: ${HOST_URL}
+      DB_PASSWORD: ${DB_PASSWORD}
+    command: /src/wait-for-it.sh postgres 5432 "node .output/server/index.mjs"
+    links:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    container_name: database
+    restart: always
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pulse_data:/var/lib/postgresql/data
+
+volumes:
+  pulse_data:

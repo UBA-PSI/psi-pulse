@@ -1,0 +1,227 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = ["multiSchema"]
+  binaryTargets   = ["native", "darwin-arm64"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public"]
+}
+
+model User {
+  id                                     String                   @id @unique
+  email                                  String                   @unique
+  name                                   String
+  receive_emails                         Boolean                  @default(true)
+  unsubscribe_emails_token               String?                  @unique
+  preferred_reminder_email_delivery_time DateTime
+  last_weekly_sent                       DateTime?
+  last_reminder_check                    DateTime?
+  receive_weekly_emails                  Boolean                  @default(true)
+  unsubscribe_weekly_emails_token        String?                  @unique
+  preferred_weekly_email_delivery_time   DateTime
+  preferred_weekly_email_delivery_day    Int
+  weekly_emails_number                   Int                      @default(6)
+  oldest_weekly_sent                     DateTime?
+  oldest_reminder_sent                   DateTime?
+  weekly_streak                          Int                      @default(0)
+  key                                    Key[]
+  auth_session                           Session[]
+  pages                                  Page[]
+  email_tokens                           EmailVerificationToken[]
+  foreign_sessions                       ThirdPartySession[]
+  email_paused_until                     DateTime?
+  weekly_email                           WeeklyEmail?
+  question_logs                          QuestionLog[]
+  log_questions                          Boolean                  @default(false)
+  verified                               Boolean                  @default(false)
+  reminder_emails                        ReminderEmail[]
+
+  @@schema("public")
+}
+
+model QuestionLog {
+  id             String          @id @default(uuid()) @db.Uuid
+  question_id    String          @db.Uuid
+  question       Question        @relation(fields: [question_id], references: [id], onDelete: Cascade)
+  question_state CurrentState
+  question_type  QuestionLogType
+  remembered     Boolean
+  created_at     DateTime        @default(now())
+  user           User?           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id        String?
+
+  @@schema("public")
+}
+
+enum QuestionLogType {
+  REMINDER
+  WEEKLY
+
+  @@schema("public")
+}
+
+model WeeklyEmail {
+  id        String     @id @default(uuid()) @db.Uuid
+  sent_at   DateTime   @default(now())
+  token     String     @unique
+  user_id   String     @unique
+  user      User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@schema("public")
+}
+
+model ReminderEmail {
+  id        String     @id @default(uuid()) @db.Uuid
+  sent_at   DateTime   @default(now())
+  token     String     @unique
+  user_id   String
+  user      User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@schema("public")
+}
+
+model EmailVerificationToken {
+  id      String @id @unique
+  expires BigInt
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+}
+
+model ThirdPartySession {
+  id      String @id @unique
+  user_id String
+  expires BigInt
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@schema("public")
+}
+
+model Session {
+  id             String @id @unique
+  user_id        String
+  active_expires BigInt
+  idle_expires   BigInt
+  user           User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@schema("public")
+}
+
+model Key {
+  id              String  @id @unique
+  hashed_password String?
+  user_id         String
+  user            User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@schema("public")
+}
+
+model Page {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  url       String
+  groups    Group[]
+  owner_id  String
+  owner     User       @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@unique([name, owner_id])
+  @@schema("public")
+}
+
+model Group {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  questions Question[]
+  page_id   String     @db.Uuid
+  page      Page       @relation(fields: [page_id], references: [id], onDelete: Cascade)
+
+  @@unique([name, page_id])
+  @@schema("public")
+}
+
+model Question {
+  id                   String           @id @default(uuid()) @db.Uuid
+  hash                 String
+  text                 String
+  answer               String
+  group_id             String           @db.Uuid
+  archived             Boolean          @default(false)
+  group                Group            @relation(fields: [group_id], references: [id])
+  page_id              String           @db.Uuid
+  page                 Page             @relation(fields: [page_id], references: [id], onDelete: Cascade)
+  question_progress    QuestionProgress @relation(fields: [question_progress_id], references: [id])
+  question_progress_id String           @unique @db.Uuid
+  weekly_email         WeeklyEmail?     @relation(fields: [weekly_email_id], references: [id])
+  weekly_email_id      String?          @db.Uuid
+  question_log         QuestionLog[]
+  reminder_email       ReminderEmail?   @relation(fields: [reminder_email_id], references: [id])
+  reminder_email_id    String?          @db.Uuid
+
+  @@unique([hash, page_id])
+  @@schema("public")
+}
+
+model QuestionProgress {
+  id String @id @default(uuid()) @db.Uuid
+
+  completed_at           DateTime  @default(now())
+  active                 Boolean   @default(true)
+  active_since           DateTime? @default(now())
+  reminder_token         String?   @unique
+  waiting_for_remembered Boolean   @default(false)
+
+  current_state    CurrentState   @default(INITIAL)
+  initial_state    QuestionState  @relation("initial_state", fields: [initial_state_id], references: [id])
+  state_1          QuestionState  @relation("state_1", fields: [state_1_id], references: [id])
+  state_2          QuestionState? @relation("state_2", fields: [state_2_id], references: [id])
+  state_3          QuestionState? @relation("state_3", fields: [state_3_id], references: [id])
+  state_4          QuestionState? @relation("state_4", fields: [state_4_id], references: [id])
+  final_state      QuestionState  @relation("final_state", fields: [final_state_id], references: [id])
+  initial_state_id String         @db.Uuid
+  state_1_id       String         @db.Uuid
+  state_2_id       String?        @db.Uuid
+  state_3_id       String?        @db.Uuid
+  state_4_id       String?        @db.Uuid
+  final_state_id   String         @db.Uuid
+  question         Question?
+
+  @@schema("public")
+}
+
+enum CurrentState {
+  INITIAL
+  STATE_1
+  STATE_2
+  STATE_3
+  STATE_4
+  FINAL
+  LONG_TERM
+
+  @@schema("public")
+}
+
+model QuestionState {
+  id                     String             @id @default(uuid()) @db.Uuid
+  offset                 Int
+  label                  String
+  initial_state_question QuestionProgress[] @relation("initial_state")
+  state_1_question       QuestionProgress[] @relation("state_1")
+  state_2_question       QuestionProgress[] @relation("state_2")
+  state_3_question       QuestionProgress[] @relation("state_3")
+  state_4_question       QuestionProgress[] @relation("state_4")
+  final_state_question   QuestionProgress[] @relation("final_state")
+
+  @@unique([label, offset])
+  @@schema("public")
+}
