@@ -1,12 +1,13 @@
 <template>
-  <UBadge v-if="activeState === 'NEGLECTED'" class="whitespace-nowrap h-6" color="red" variant="subtle">
-    Neglected
+  <!-- Ohne Schuldzuweisung: neutral statt rot (Regeln: userStats.vue) -->
+  <UBadge v-if="activeState === 'NEGLECTED'" class="whitespace-nowrap h-6 text-gray-700 dark:text-gray-200" color="neutral" variant="subtle">
+    {{ t.badgeNeglected }}
   </UBadge>
-  <UBadge v-else-if="activeState === 'PENDING'" class="whitespace-nowrap h-6" color="orange" variant="subtle">
-    Pending
+  <UBadge v-else-if="activeState === 'PENDING'" class="whitespace-nowrap h-6 text-gray-700 dark:text-gray-200" color="neutral" variant="subtle">
+    {{ t.badgePending }}
   </UBadge>
-  <UBadge v-else-if="activeState === 'ACTIVE'" class="whitespace-nowrap h-6" color="green" variant="subtle">
-    Active for {{ daysSince }} days
+  <UBadge v-else-if="activeState === 'ACTIVE'" class="whitespace-nowrap h-6 text-green-700" color="success" variant="subtle">
+    {{ t.badgeActive(daysSince) }}
   </UBadge>
 </template>
 
@@ -17,6 +18,7 @@ const props = defineProps<{
   activeState: QuestionActiveState
   activeSince: string | null
 }>()
+const t = useUiText()
 
 const daysSince = computed(() => {
   const today = new Date();

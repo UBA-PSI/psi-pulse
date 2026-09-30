@@ -1,0 +1,227 @@
+# Page for teachers and developers (/en/developers/). Keys must match entwickler.de.toml.
+# Values are HTML; {{ key }} inserts another key, {{ code_<name> }} a code example (code.<name> at the end).
+
+title = "psi-pulse for developers · Embedding questions in your own pages · PSI Chair, University of Bamberg"
+description = "How to embed psi-pulse questions in your own web pages, adapt their look and meet privacy requirements, and the rules by which psi-pulse repeats questions by email."
+heading = "Embedding psi-pulse in your own pages"
+
+intro = '''
+<p class="doc-lead">This page is for teachers who want to add review questions to their own web pages, and for anyone who builds that. You need one line of JavaScript and some HTML, but no server of your own and no psi-pulse account.</p>
+<p>psi-pulse is open to teachers at other universities too. We run the service on a best-effort basis, without any commitment to availability or support. Please check with your university’s data protection office whether you may use it in your teaching. The <a href="/embed/v2/demo.html">demo page</a> shows the result, in several designs.</p>
+'''
+toc_h = "Contents"
+
+embed_h = "Embedding"
+embed = '''
+<p>A question is plain HTML; the psi-pulse script turns it into a self-test: the question, a “Show answer” button, then “I knew it” or “I didn’t”. Without JavaScript the answer can still be expanded; when printed, question and answer both appear.</p>
+{{ code_first }}
+<p>There are three ways to include the script; the questions behave the same in each case:</p>
+{{ code_load }}
+<ol>
+<li><strong>Load it from the psi-pulse server:</strong> the simplest option, and improvements arrive automatically. In return, every visit to your page loads the script from pulse.psi.uni-bamberg.de.</li>
+<li><strong>Serve the file yourself:</strong> put <code>pulse.min.js</code> among your own files and name the psi-pulse server in <code>data-host</code>. You then decide when to take a new version.</li>
+<li><strong>Write it into the page:</strong> for self-contained HTML files, such as lecture notes to download. This also works when the file is opened locally.</li>
+</ol>
+<p>The script may go in the <code>&lt;head&gt;</code> or at the end of the page. The files are at <a href="/embed/v2/pulse.min.js">/embed/v2/pulse.min.js</a> and, readable with comments, at <a href="/embed/v2/pulse.js">/embed/v2/pulse.js</a>.</p>
+'''
+
+markup_h = "Writing questions"
+markup = '''
+<p>Everything inside <code>&lt;pulse-question&gt;</code> except the <code>&lt;details&gt;</code> block is the question; the content of <code>&lt;details&gt;</code> without the <code>&lt;summary&gt;</code> is the answer. Both may contain any HTML, including code, formulas or images. The reminder emails use the plain text only.</p>
+<dl>
+<dt><code>key</code></dt>
+<dd>A fixed name for the question, unique on the page. We recommend it: with <code>key</code>, students keep their progress when you later correct the question text, and psi-pulse takes over the new text. Without <code>key</code>, psi-pulse recognises a question by its text, and a changed question counts as a new one.</dd>
+<dt><code>&lt;pulse-deck&gt;</code></dt>
+<dd>A deck: shows several questions one after another (“Question 1 of 3”). On loading, new questions and those due again move to the front.</dd>
+<dt><code>group</code></dt>
+<dd>Optional group name, for example a chapter. It orders the questions in the web app and in the emails. It goes on <code>&lt;pulse-deck&gt;</code> or on a single question.</dd>
+<dt><code>&lt;pulse-summary&gt;</code></dt>
+<dd>Optional: progress on this page, a short explanation and sign-in. With the <code>compact</code> attribute it becomes a single line that expands.</dd>
+</dl>
+{{ code_deck }}
+<p>Pages written for the first version of psi-pulse keep working: <code>&lt;pulse-question question="…" answer="…"&gt;</code>, <code>&lt;pulse-page name="…"&gt;</code> and the <code>&lt;pulse-stack&gt;</code> deck are understood, and students keep their progress. You only swap the script. Your own CSS rules for <code>pulse-deck</code> should then name <code>pulse-stack</code> as well.</p>
+'''
+
+config_h = "Settings"
+config = '''
+<p>Settings go on the script as attributes. All of them are optional.</p>
+<dl>
+<dt><code>data-page</code></dt>
+<dd>Name of the page, for example “Lecture 3: Cryptography”. Students see it in the web app and in the emails; the questions of one page belong together. Keep the name stable, as progress is tied to it. Without it, psi-pulse uses <code>&lt;meta name="pulse:page"&gt;</code>, otherwise the page title.</dd>
+<dt><code>data-url</code></dt>
+<dd>The public address of the page; the web app links back to it. Without it, psi-pulse uses <code>&lt;meta name="pulse:url"&gt;</code>, then <code>&lt;link rel="canonical"&gt;</code>, then the address in the browser. For files opened locally, psi-pulse sends no address, so never a path on your computer.</dd>
+<dt><code>data-print</code></dt>
+<dd>What appears in print: <code>answers</code> (question and answer, the default), <code>questions</code> (questions only) or <code>hide</code> (no questions).</dd>
+<dt><code>data-host</code></dt>
+<dd>Address of the psi-pulse server. Only needed if you serve the script yourself or write it into the page.</dd>
+<dt><code>data-style</code></dt>
+<dd>With <code>none</code>, psi-pulse adds no CSS of its own; you style everything yourself.</dd>
+</dl>
+'''
+
+style_h = "Adapting the look"
+style = '''
+<p>The questions take on the fonts, colours and headings of your page. The psi-pulse CSS is deliberately weak: every rule of your page wins, without <code>!important</code>. That includes general rules such as <code>button { … }</code>, which then also change the question buttons.</p>
+<p>Set colours and shapes with CSS variables, on the element itself or on an enclosing element:</p>
+<dl>
+<dt><code>--pulse-accent</code></dt><dd>buttons, label, links, focus outline (default: text colour)</dd>
+<dt><code>--pulse-on-accent</code></dt><dd>text on filled buttons</dd>
+<dt><code>--pulse-rule</code></dt><dd>border and the line above the answer</dd>
+<dt><code>--pulse-bg</code></dt><dd>background of the box (default: transparent)</dd>
+<dt><code>--pulse-radius</code></dt><dd>rounding of box, buttons and fields</dd>
+<dt><code>--pulse-ui-font</code>, <code>--pulse-ui-size</code></dt><dd>font and size of buttons and notes</dd>
+<dt><code>--pulse-muted</code></dt><dd>colour of notes</dd>
+<dt><code>--pulse-space</code></dt><dd>padding and margin of the box</dd>
+<dt><code>--pulse-error</code></dt><dd>error messages during sign-in</dd>
+</dl>
+{{ code_vars }}
+<p><strong>Pages with a global reset.</strong> If your page resets all spacing, for example with <code>* { margin: 0; padding: 0 }</code>, that rule wins too and the questions look cramped. Set the spacing yourself in that case, for example like this:</p>
+{{ code_reset }}
+<p>Further classes and states for targeted changes are documented in <a href="/embed/v2/pulse.js">pulse.js</a>.</p>
+'''
+
+behave_h = "What students experience"
+behave = '''
+<h3>Without signing in</h3>
+<p>The self-tests work straight away. The browser stores the answers “I knew it” and “I didn’t” on the student’s device (in your page’s <code>localStorage</code>). The script makes no request at all to psi-pulse.</p>
+<h3>After signing in</h3>
+<p>Below an answered question there is a link “Keep it and review by email”. Students who choose this enter an email address and type in the six-digit code from the email. There is no password; anyone without an account gets one in the process. The script then moves the earlier answers from the browser into the account and deletes them from the browser.</p>
+<p>Once signed in, each question shows whether it is due again. A question that is not due yet can be revealed but not rated, so nobody skips the intervals. When a question comes back is described under <a href="#lernlogik">Learning logic</a>.</p>
+<p>Signing in applies to one website in one browser. On another website with psi-pulse questions, or in another browser, students sign in once more. Signing out removes the sign-in and the answers from the browser.</p>
+<h3>Language and accessibility</h3>
+<p>Labels appear in German or English, depending on the <code>lang</code> attribute around the question, so please set it on the <code>&lt;html&gt;</code> element. The buttons are real buttons and work with the keyboard, and screen readers announce status messages. Because the questions take on your page’s colours, please check the contrast in your design.</p>
+'''
+
+privacy_h = "Privacy and requirements"
+privacy = '''
+<p>Without sign-in, the script sends nothing to psi-pulse. If you load the script from the psi-pulse server (option 1), the browser only fetches the script file from there. The script sets no cookies, uses no iframe and no trackers. After sign-in, the <a href="/privacy-policy">psi-pulse privacy policy</a> applies; psi-pulse stores the email address, a name if given, question and answer texts, page name and page address, and whether an answer was known.</p>
+<p>Mention psi-pulse in your page’s privacy notice, and check with your university’s data protection office whether you may use the service.</p>
+<p>If your page has a Content Security Policy (CSP, a list of permitted sources in an HTTP header), it needs two entries:</p>
+<ul>
+<li><code>script-src https://pulse.psi.uni-bamberg.de</code>, or for a script written into the page its hash or <code>'unsafe-inline'</code>,</li>
+<li><code>connect-src https://pulse.psi.uni-bamberg.de</code> for sign-in and answers.</li>
+</ul>
+<p>No <code>frame-src</code> entry is needed.</p>
+'''
+
+logic_h = "Learning logic: when a question comes back"
+logic = '''
+<p>This section describes how psi-pulse schedules questions for students who have signed in. Without sign-in, psi-pulse schedules nothing; the answers stay in the browser.</p>
+
+<h3>Intervals</h3>
+<p>With each answer you knew, the interval until the next review grows: 1, 2, 4, 7, then 14 days. After that it stays at 14 days, so a question you always know comes back every two weeks, with no end. To stop seeing a question, archive it (see below).</p>
+<p>The interval counts from the last answer. After that the question is “due again” and goes into the next reminder email. Because that email arrives at a fixed time, it can take a few hours up to a day longer.</p>
+<p>The first answer is given while reading, in the lecture notes. If it was known, the question is due again after one day. If not, the question is already in the next reminder email.</p>
+<p>Pages can set their own intervals with attributes in the style of the first version (<code>state-…</code>); otherwise the intervals above apply.</p>
+
+<h3>“I didn’t”</h3>
+<p>Answering “I didn’t” does not move the question up: it comes back after the same interval as last time. If the answer is “I didn’t” again next time, the question drops back to the next shorter interval, and one more step with each further “I didn’t”, until it is in every reminder email. As soon as the answer is known again, the interval grows as usual.</p>
+
+<h3>Reminder email</h3>
+<p>psi-pulse sends at most one reminder email a day, and only on days when at least one question is due again. It arrives from the time students choose in their settings (full hours, German time). If more than six questions are due, psi-pulse picks six at random; the others follow on the next days.</p>
+<p>Each question in the email has its own link, plus one link for all. A question from a reminder email only goes into another one once it has been answered, whether through the email, in the web app or in the lecture notes.</p>
+
+<h3>Weekly selection</h3>
+<p>Once a week a second email brings a random selection from all of one’s questions, including those not due at the moment. Students choose the day, the time and the number of questions; the default is six questions on Wednesdays. The selection is valid until the next one, after which its link no longer works. Archived questions do not appear in it.</p>
+<p>Answers in the weekly selection do not change the schedule. Only an “I didn’t” counts: if another one follows next time, the question drops back as described above.</p>
+
+<h3>Streak</h3>
+<p>Answering a weekly selection down to the last question extends the streak by one week; the web app shows it on its overview. If the next weekly selection arrives before the previous one is finished, the streak starts again at zero.</p>
+
+<h3>Pause</h3>
+<p>psi-pulse pauses all emails for 14 days if a student</p>
+<ul>
+<li>has not answered any question from the reminder emails seven days after a reminder email, or</li>
+<li>has not finished any weekly selection for 14 days.</li>
+</ul>
+<p>A short email announces the pause. After 14 days psi-pulse sends an email that it is back, and reminders resume. Answering any of one’s questions before that ends the pause at once; an email confirms this too.</p>
+
+<h3>Neglected questions</h3>
+<p>The web app shows a status for each question. If a question stays unanswered for twice its current interval, so 14 days after the last answer at an interval of 7 days, it counts as “Neglected”. An interval shorter than a day, for example right after “I didn’t”, counts as one day: a question is neglected two days after the last answer at the earliest. After the next answer outside the weekly selection it shows “Pending”, after one more it is active again. The status does not change when the question comes; the web app’s overview counts the active questions.</p>
+
+<h3>Archiving and deleting</h3>
+<p>On the “Questions” page of the web app, students select questions and archive or delete them; when answering from an email, “Archive” is also in the question’s menu. Archived questions no longer appear in reminder emails or weekly selections. Their progress is kept, and archiving can be undone on the same page. Deleting removes the question together with its progress; answering it again in the lecture notes later starts it from the beginning. Deleting the account deletes all questions.</p>
+
+<h3>How long codes and links are valid</h3>
+<dl>
+<dt>Sign-in code in the lecture notes</dt><dd>10 minutes, at most five attempts</dd>
+<dt>Sign-in in the lecture notes</dt><dd>90 days on this website in this browser, until signing out</dd>
+<dt>Sign-in link for the web app</dt><dd>2 hours, usable once</dd>
+<dt>Link to one question from a reminder email</dt><dd>until the question has been answered</dd>
+<dt>Link to all questions of a reminder email</dt><dd>until all are answered, at most 30 days</dd>
+<dt>Link to the weekly selection</dt><dd>until it is finished or the next one arrives</dd>
+<dt>Unsubscribe link</dt><dd>until it is used</dd>
+</dl>
+<p>Accounts whose sign-up was never confirmed are deleted by psi-pulse after 30 days.</p>
+'''
+
+contact_h = "Questions and feedback"
+contact = '''
+<p>If you would like to use psi-pulse in your teaching, want to build your own client, or something does not work as described, write to <a href="mailto:dh.psi@uni-bamberg.de">dh.psi@uni-bamberg.de</a>.</p>
+'''
+
+# Code examples: src is the source, lang html or css, label the name for screen readers
+code.first.label = "Example: script and one question"
+code.first.lang = "html"
+code.first.src = '''
+<script defer
+  src="https://pulse.psi.uni-bamberg.de/embed/v2/pulse.min.js"></script>
+
+<pulse-question key="crypto-signature">
+  <p>What does a digital signature guarantee?</p>
+  <details><summary>Answer</summary>
+    <p>Integrity and authenticity of the message.</p>
+  </details>
+</pulse-question>
+'''
+
+code.load.label = "Example: three ways to include the script"
+code.load.lang = "html"
+code.load.src = '''
+<!-- 1. from the psi-pulse server -->
+<script defer
+  src="https://pulse.psi.uni-bamberg.de/embed/v2/pulse.min.js"></script>
+
+<!-- 2. your own copy of the file -->
+<script defer src="/js/pulse.min.js"
+  data-host="https://pulse.psi.uni-bamberg.de"></script>
+
+<!-- 3. written into the page -->
+<script data-host="https://pulse.psi.uni-bamberg.de">
+  /* content of pulse.min.js */
+</script>
+'''
+
+code.deck.label = "Example: deck with group and summary"
+code.deck.lang = "html"
+code.deck.src = '''
+<pulse-deck group="Cryptography">
+  <pulse-question key="crypto-signature">…</pulse-question>
+  <pulse-question key="crypto-hash">…</pulse-question>
+</pulse-deck>
+
+<pulse-summary compact></pulse-summary>
+'''
+
+code.vars.label = "Example: colours via CSS variables"
+code.vars.lang = "css"
+code.vars.src = '''
+pulse-question, pulse-deck, pulse-summary {
+  --pulse-accent: #00457d;
+  --pulse-on-accent: #fff;
+  --pulse-rule: #ccdae5;
+  --pulse-radius: .5rem;
+}
+'''
+
+code.reset.label = "Example: spacing after a global reset"
+code.reset.lang = "css"
+code.reset.src = '''
+/* after the page's reset */
+:is(pulse-question, pulse-deck) { margin: .75em 0; padding: .75em; }
+pulse-deck pulse-question { margin: 0; padding: 0; }
+:is(pulse-question, pulse-deck) :is(.pulse-bar, .pulse-grade, .pulse-a) {
+  margin-top: .6em;
+}
+:is(pulse-question, pulse-deck) .pulse-btn { padding: .4em .9em; }
+'''

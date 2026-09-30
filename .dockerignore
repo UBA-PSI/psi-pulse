@@ -1,0 +1,11 @@
+# Nie in den Build-Kontext: Geheimnisse und lokale Artefakte
+.env
+.env.*
+!.env.example
+.git
+node_modules
+.output
+.nuxt
+.nitro
+.data
+public/embed/v2/*.min.js

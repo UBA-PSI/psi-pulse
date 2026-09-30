@@ -1,0 +1,85 @@
+# Accessibility statement (/en/accessibility/). Keys must match barrierefreiheit.de.toml.
+# Structure, legal basis, contact and enforcement as in the statement on psi.uni-bamberg.de
+# (psi-website: hugo/content/barrierefreiheit/_index.en.md). Values are HTML; {{ key }} inserts another key
+# of this file. Open items as [[OFFEN: …]]: the build lists them, deploy.sh aborts.
+
+# To be set by the chair, format like "26 September 2026"
+date_created = "27 September 2026"
+date_reviewed = "27 September 2026"
+
+title = "Accessibility statement · psi-pulse · University of Bamberg"
+description = "How accessible psi-pulse is, which limitations are known and how to report a barrier."
+heading = "Accessibility statement"
+
+intro = '''
+<p>The Chair of Privacy and Security in Information Systems at the University of Bamberg is committed to making the psi-pulse service accessible. The legal basis is Art. 14 of the Bavarian Disability Equality Act (BayBGG) and §§ 9 to 11 of the Bavarian Digital Regulation (BayDiV), which implement Directive (EU) 2016/2102. Under § 9 (1) BayDiV, the requirements of § 3 of the German Barrier-Free Information Technology Ordinance (BITV 2.0) apply. They are specified by the European standard EN 301 549, which for websites refers to the Web Content Accessibility Guidelines (WCAG) 2.1 at conformance level AA.</p>
+<p>This statement applies to psi-pulse at pulse.psi.uni-bamberg.de:</p>
+<ul>
+<li>the home page, the developer page and this statement, each in German and English,</li>
+<li>the web app: sign-in, sign-up, your account with your questions and settings, and the pages where you answer questions from the reminder emails,</li>
+<li>the embeddable widget that shows psi-pulse questions in lecture notes and other web pages.</li>
+</ul>
+<p>The web pages in which the widget is embedded are not part of psi-pulse; their providers are responsible for them. For the chair’s website, see its own <a href="https://psi.uni-bamberg.de/en/barrierefreiheit/">accessibility statement</a>. For all other pages of the University of Bamberg, see the <a href="https://www.uni-bamberg.de/its/verfahrensweisen/barrierefreiheit-erklaerung/">university’s general accessibility statement</a> (in German).</p>
+'''
+version_note = '''
+<p>This English version is provided for convenience. The <a href="/barrierefreiheit/" hreflang="de">German version</a> is authoritative.</p>
+'''
+
+status_h = "Compliance status"
+status = '''
+<p>psi-pulse is <strong>partially compliant</strong> with the requirements. The non-compliances and the areas not yet fully tested are listed in the next section.</p>
+'''
+
+# ADJUST: reflects the state before the fixes in the app (B1–B4 in docs/a11y-microcopy.md) and before the
+# lecture notes switch to widget v2 (B5–B8). Review and shorten after both.
+limits_h = "Non-accessible content"
+limits = '''
+<p>The following content is not accessible for the reasons given, or has not yet been fully tested.</p>
+<h3>Non-compliance with the BayDiV</h3>
+<ul>
+<li><strong>Drop-down menus in the web app:</strong> On the overview, the list of your questions and the settings, drop-down menus and selection lists place one control inside another. Screen readers may therefore announce these elements twice or inconsistently (WCAG 4.1.2).</li>
+</ul>
+<h3>Not yet fully tested</h3>
+<ul>
+<li><strong>Answer pages from the emails:</strong> We have not yet systematically tested the pages that the links in the reminder and weekly emails lead to. There may be barriers there that are not yet listed here.</li>
+<li><strong>Emails:</strong> We have not tested the emails with the sign-in code or the reminder emails for accessibility.</li>
+<li><strong>Use with a screen reader:</strong> So far, our testing has been mostly automated. Manual testing with screen readers and a complete test of keyboard operation of the web app and the widget are still pending.</li>
+</ul>
+<h3>Content outside the scope</h3>
+<ul>
+<li><strong>Embedding web pages:</strong> The widget takes on the font and colours of the web page it is embedded in. Whether text and buttons have enough contrast there therefore also depends on that page. Its provider is responsible for it.</li>
+<li><strong>Third-party content:</strong> Linked external services, such as the texts and research articles listed on the home page, are neither operated nor controlled by us. They are not covered by this statement.</li>
+</ul>
+'''
+
+# ADJUST: the list and the last paragraph describe the state of testing; update after the fixes in the app.
+made_h = "Preparation of this statement"
+made = '''
+<p>This statement was prepared on {{ date_created }} and last reviewed on {{ date_reviewed }}, based on a self-assessment:</p>
+<ul>
+<li>automated testing of the home page, the developer page and this statement (German and English) with axe-core against the WCAG 2.1 criteria (levels A and AA), in desktop and mobile view</li>
+<li>automated testing of the web app with axe-core: sign-in, sign-up, email confirmation, privacy policy, unsubscribing from emails and, after sign-in, the overview, the list of questions and the settings, each in light and dark mode; also the widget on its demo page</li>
+<li>testing that the home page, the developer page and this statement display at a width of 320 pixels (equivalent to 400 % zoom) without horizontal scrolling</li>
+<li>testing keyboard operation and focus visibility on the home page, the developer page and this statement</li>
+</ul>
+<p>Issues found during testing were fixed before publication unless listed above. We review this statement at least once a year and update it as needed (§ 10 BayDiV).</p>
+'''
+
+contact_h = "Report a barrier: contact"
+contact = '''
+<p>If you notice a barrier in psi-pulse, or need information in an accessible format, please contact us:</p>
+<p>Chair of Privacy and Security in Information Systems<br>
+University of Bamberg, An der Weberei 5, 96047 Bamberg, Germany<br>
+Email: <a href="mailto:office.psi@uni-bamberg.de">office.psi@uni-bamberg.de</a></p>
+<p>Students with disabilities or chronic illnesses can also contact the university’s <a href="https://www.uni-bamberg.de/bafbs/">Commissioner for Students with Disabilities</a>.</p>
+'''
+
+enforce_h = "Enforcement procedure"
+enforce = '''
+<p>If your message to us remains wholly or partly unanswered after six weeks, you can ask the enforcement and monitoring body for accessible information technology to review the case (§ 11 (2) BayDiV). You can apply online via the <a href="https://www.ldbv.bayern.de/digitalisierung/bitv/">enforcement body’s information page</a> (in German).</p>
+<p><span lang="de">Landesamt für Digitalisierung, Breitband und Vermessung</span><br>
+<span lang="de">IT-Dienstleistungszentrum des Freistaats Bayern</span><br>
+<span lang="de">Durchsetzungs- und Überwachungsstelle für barrierefreie Informationstechnik</span><br>
+St.-Martin-Straße 47, 81541 München, Germany<br>
+Email: <a href="mailto:bitv@ldbv.bayern.de">bitv@ldbv.bayern.de</a></p>
+'''

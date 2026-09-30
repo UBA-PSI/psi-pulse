@@ -1,0 +1,31 @@
+<footer class="footer">
+  <div class="wrap footer-grid">
+    <div>
+      <p class="footer-title">{{ footer_operator_h }}</p>
+      <p>{{ footer_operator }}</p>
+    </div>
+    <div>
+      <p class="footer-title">psi-pulse</p>
+      <ul>
+        <li><a href="/login">{{ login }}</a></li>
+        <li><a href="/signup">{{ cta_signup }}</a></li>
+        <li><a href="{{ anchor_base }}#so-gehts">{{ nav_how }}</a></li>
+        <li><a href="{{ anchor_base }}#fragen">{{ nav_faq }}</a></li>
+        <li><a href="{{ dev_path }}">{{ footer_dev }}</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-title">{{ footer_legal_h }}</p>
+      <ul>
+        <li><a href="/privacy-policy">{{ footer_privacy }}</a></li>
+        <li><a href="https://www.uni-bamberg.de/psi/kontaktnavigation/impressum/">{{ footer_imprint }}</a></li>
+        <li><a href="{{ a11y_path }}">{{ footer_a11y }}</a></li>
+        <li><a href="{{ psi_url }}">{{ footer_contact }}</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap footer-bottom">
+    <span>{{ footer_copyright }}</span>
+    <a href="{{ alt_path }}" hreflang="{{ alt_lang }}" lang="{{ alt_lang }}">{{ alt_label_long }}</a>
+  </div>
+</footer>

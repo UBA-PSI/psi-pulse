@@ -1,43 +1,13 @@
-import {validateEmailVerificationToken} from "~/server/utils/token";
-import {PrismaClient} from "@prisma/client";
-
-const client = new PrismaClient();
-
-
-export default defineEventHandler(async (event) => {
-    const { token } = event.context.params ?? {
-        token: ""
-    };
-    try {
-        const userId = await validateEmailVerificationToken(token);
-        if (!userId) {
-            throw createError({
-                status: 400,
-                message: "Invalid email verification link"
-            });
-        }
-        const session = await auth.createSession({
-            userId: userId,
-            attributes: {}
-        });
-        const authRequest = auth.handleRequest(event);
-        authRequest.setSession(session);
-
-        await client.user.update({
-            where: {
-                id: userId
-            },
-            data: {
-                verified: true
-            }
-        });
-
-        return sendRedirect(event, "/");
-    } catch (e) {
-        console.log(e)
-        throw createError({
-            status: 400,
-            message: "Invalid email verification link"
-        });
+// Ziel der Links in Anmelde- und Signup-Mails. Setzt keine Sitzung mehr (A29, Login-CSRF): Vorher meldete schon
+// das Öffnen des Links den Browser an, auch einen fremden, dem jemand seinen eigenen Link untergeschoben hat.
+// Jetzt nur Weiterleitung auf die Bestätigungsseite; angemeldet wird erst mit dem Knopf dort (POST, Origin-Prüfung).
+// Das Token wird hier weder geprüft noch verbraucht, damit Link-Scanner der Mailprogramme nichts entwerten.
+export default defineEventHandler((event) => {
+    const token = event.context.params?.token ?? "";
+    if (!/^[A-Za-z0-9]{1,100}$/.test(token)) {
+        return sendRedirect(event, "/email-verification/invalid");
     }
+    const lang = getQuery(event).lang;
+    const suffix = lang === "de" || lang === "en" ? `?lang=${lang}` : "";
+    return sendRedirect(event, `/email-verification/${token}${suffix}`);
 });

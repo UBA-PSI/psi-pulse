@@ -1,7 +1,8 @@
 export interface UpdateAccountBody {
     name: string;
-    preferredReminderDeliveryTime: string;
-    preferredWeeklyDeliveryTime: string;
+    // volle Stunde 0–23, deutsche Zeit (Europe/Berlin)
+    preferredReminderDeliveryTime: number | string;
+    preferredWeeklyDeliveryTime: number | string;
     preferredWeeklyDeliveryDay: number;
     receiveEmails: boolean,
     receiveWeeklyEmails: boolean,
@@ -13,8 +14,9 @@ export interface UpdateAccountBody {
 
 export interface GetAccountResponse {
     name: string;
-    preferredReminderDeliverTime: Date;
-    preferredWeeklyDeliverTime: Date;
+    // volle Stunde 0–23, deutsche Zeit (Europe/Berlin)
+    preferredReminderDeliverTime: number;
+    preferredWeeklyDeliverTime: number;
     preferredWeeklyDeliverDay: number;
     receiveEmails: boolean,
     receiveWeeklyEmails: boolean,

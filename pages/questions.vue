@@ -5,128 +5,111 @@
   <div class="mx-auto  px-4 mt-6 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-s border  border-gray-900/10 dark:border-white/10  rounded-xl overflow-hidden">
       <div class="overflow-hidden rounded-lg px-4 py-5 sm:px-6">
-        <div class=" grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-7">
+        <div class=" grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-7 [&>*]:min-w-0">
           <ClientOnly>
-            <UFormGroup label="Actions" name="pages">
-              <UButtonGroup orientation="horizontal">
-                <UButton class="" color="white" variant="solid" @click="toggleSelectionMode">
+            <UFormField label="Actions" name="pages">
+              <UFieldGroup orientation="horizontal">
+                <UButton class="" color="neutral" variant="solid" @click="toggleSelectionMode">
                   {{ selectMode ? "Unselect" : "Select" }}
                 </UButton>
-                <UDropdown :items="items" :popper="{ placement: 'bottom-start' }">
-                  <UButton color="white" label="" trailing-icon="i-heroicons-chevron-down-20-solid"/>
-                </UDropdown>
-              </UButtonGroup>
-            </UFormGroup>
-            <UFormGroup label="Questions" name="questions">
+                <UDropdownMenu :items="items" :content="{ side: 'bottom', align: 'start' }">
+                  <UButton aria-label="More actions" color="neutral" label="" trailing-icon="i-heroicons-chevron-down-20-solid"/>
+                </UDropdownMenu>
+              </UFieldGroup>
+            </UFormField>
+            <UFormField label="Questions" name="questions">
               <UInput v-model="questionSearchTerm" placeholder="Filter questions..."/>
-            </UFormGroup>
-            <UFormGroup label="Pages" name="pages">
+            </UFormField>
+            <UFormField label="Pages" name="pages">
               <USelectMenu
                   v-model="selectedPage"
                   :disabled="pagesMenuContent === null"
-                  :options="pagesMenuContent"
+                  :items="pagesMenuContent ?? []"
                   class=""
                   multiple
-                  option-attribute="name"
+                  label-key="name"
                   placeholder="Select page"
                   searchable
                   searchable-placeholder="Search a page..."
-                  value-attribute="id"
+                  value-key="id"
               />
-            </UFormGroup>
-            <UFormGroup label="Groups" name="groups">
+            </UFormField>
+            <UFormField label="Groups" name="groups">
               <USelectMenu
                   v-model="selectedGroup"
                   :disabled="groupMenuContent === null"
-                  :options="groupMenuContent"
+                  :items="groupMenuContent ?? []"
                   class=""
                   multiple
-                  option-attribute="name"
+                  label-key="name"
                   placeholder="Select page"
                   searchable
                   searchable-placeholder="Search a page..."
-                  value-attribute="id"
+                  value-key="id"
               />
-            </UFormGroup>
-            <UFormGroup label="States" name="states">
+            </UFormField>
+            <UFormField label="States" name="states">
               <USelectMenu
                   v-model="selectedState"
-                  :options="stateTags"
+                  :items="stateTags"
                   class=""
                   multiple
-                  option-attribute="name"
+                  label-key="name"
                   placeholder="Select state"
                   searchable
                   searchable-placeholder="Search a state..."
-                  value-attribute="id"
+                  value-key="id"
               />
-            </UFormGroup>
-            <UFormGroup label="Open" name="open">
+            </UFormField>
+            <UFormField label="Open" name="open">
               <USelectMenu
                   v-model="selectOpen"
-                  :options="isOpenMenuContent"
+                  :items="isOpenMenuContent"
                   class=""
                   multiple
-                  option-attribute="label"
+                  label-key="label"
                   placeholder="Select open"
-                  value-attribute="value"
+                  value-key="value"
               />
-            </UFormGroup>
-            <UFormGroup label="Archived" name="archived">
+            </UFormField>
+            <UFormField label="Archived" name="archived">
               <USelectMenu
                   v-model="selectArchived"
-                  :options="archivedMenuContent"
+                  :items="archivedMenuContent"
                   class=""
                   multiple
-                  option-attribute="label"
+                  label-key="label"
                   placeholder="Select archived"
-                  value-attribute="value"
+                  value-key="value"
               />
-            </UFormGroup>
+            </UFormField>
           </ClientOnly>
         </div>
-        <UDivider class="mt-6 mb-4"/>
-        <UTable v-model="selectionVmodel"
-                :columns="selectedColumns"
-                :empty-state="{ icon: 'i-heroicons-circle-stack-20-solid', label: 'No items.' }"
-                :loading="!questions" :rows="filteredRows"
-                :sort="{ column: 'title' }" @select="selectAction"
-        >
-          <template #currentState-data="{ row }">
-            {{ getCurrentState(row) }}
-          </template>
-          <template #attributes-data="{ row }">
-            <div class="flex">
-              <UPopover v-if="row.archived" :ui="{wrapper: 'flex items-center'}" mode="hover">
-                <UIcon name="i-heroicons-archive-box"/>
-                <template #panel>
-                  <div class="p-4 max-w-sm">
-                    This question is archived. It will not be asked again.
-                  </div>
-                </template>
-              </UPopover>
-
-              <UPopover v-else-if="row.isOpen" :ui="{wrapper: 'flex items-center'}" mode="hover">
-                <UIcon name="i-heroicons-lock-open"/>
-                <template #panel>
-                  <div class="p-4 max-w-sm">
-                    This question is open. You can answer it again.
-                  </div>
-                </template>
-              </UPopover>
-            </div>
+        <USeparator class="mt-6 mb-4"/>
+        <UTable :columns="tableColumns" :data="filteredRows" :loading="!questions"
+                :get-row-id="row => row.id" :row-selection="rowSelection"
+                @select="(_event, row) => selectAction(row.original)">
+          <template #currentState-cell="{ row }">{{ getCurrentState(row.original) }}</template>
+          <template #attributes-cell="{ row }">
+            <span v-if="row.original.archived" class="flex items-center gap-1 text-sm">
+              <UIcon name="i-heroicons-archive-box" aria-hidden="true"/>{{ ui.archivedLabel }}
+            </span>
+            <span v-else-if="row.original.isOpen" class="flex items-center gap-1 text-sm">
+              <UIcon name="i-heroicons-lock-open" aria-hidden="true"/>{{ ui.dueLabel }}
+            </span>
           </template>
         </UTable>
 
-        <UModal v-model="questionDetailOpened">
+        <UModal v-model:open="questionDetailOpened" :title="selectedQuestion?.question"><template #content>
           <QuestionInfo :after-archive="() => {questionDetailOpened = false}" :question="selectedQuestion"/>
-        </UModal>
+        </template></UModal>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+const ui = useUiText()
 import type {CurrentState} from "@prisma/client";
 import type {InternalQuestion} from "~/types/questions/internal";
 import type {SimpleQuestionUpdate} from "~/types/questions/questions";
@@ -209,19 +192,19 @@ const items = [
   [{
     label: 'Archive',
     icon: 'i-heroicons-archive-box-20-solid',
-    click: () => {
+    onSelect: () => {
       archiveQuestion(true)
     }
   }, {
     label: 'Unarchive',
     icon: 'i-heroicons-archive-box-x-mark-20-solid',
-    click: () => {
+    onSelect: () => {
       archiveQuestion(false)
     }
   }], [{
     label: 'Delete',
     icon: 'i-heroicons-trash-20-solid',
-    click: () => {
+    onSelect: () => {
       deleteQuestion()
     }
   }]
@@ -256,7 +239,15 @@ const afterAction = async () => {
   selectMode.value = false
 }
 
-const selectedColumns = ref([...columns])
+const rowSelection = computed(() => Object.fromEntries(selectedEntries.value.map(row => [row.id, true])))
+const tableColumns = columns.map(({key, label, sortable}) => ({
+  accessorKey: key,
+  header: sortable ? ({column}) => h('button', {
+    type: 'button', class: 'font-semibold cursor-pointer',
+    onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+  }, label + (column.getIsSorted() === 'asc' ? ' ↑' : column.getIsSorted() === 'desc' ? ' ↓' : '')) : label,
+  enableSorting: sortable,
+}))
 
 const questionSearchTerm = ref('')
 

@@ -1,40 +1,40 @@
 # syntax = docker/dockerfile:1
+ARG NODE_VERSION=24
 
-ARG NODE_VERSION=20.8.1
-
-FROM node:${NODE_VERSION}-slim as base
-
-ARG PORT=3000
-
-ENV NODE_ENV=production
-
+FROM node:${NODE_VERSION}-trixie-slim AS base
 WORKDIR /src
+RUN apt-get update -y \
+ && apt-get install -y --no-install-recommends openssl \
+ && rm -rf /var/lib/apt/lists/*
 
-# Build
-FROM base as build
-
-RUN apt-get update -y && apt-get install -y openssl postgresql-client
-
-COPY --link package.json package-lock.json ./
-RUN npm install --production=true
-
-COPY --link . .
+# Build: exakte Versionen aus package-lock.json, nichts wird nachgeladen.
+FROM base AS build
+COPY package.json package-lock.json ./
+RUN npm ci --include=dev
+COPY . .
 RUN npm run build
 
-RUN npm prune
+# Migrationen mit dem gepinnten Prisma aus dem Lockfile:
+#   docker compose run --rm migrate
+FROM build AS migration-deps
+# Reuse the locked, installed CLI dependencies; prune offline, without resolving new versions.
+RUN node -e 'const fs = require("node:fs"); const p = JSON.parse(fs.readFileSync("package.json")); p.dependencies = {prisma: p.devDependencies.prisma, dotenv: p.devDependencies.dotenv}; p.devDependencies = {}; fs.writeFileSync("package.json", JSON.stringify(p));' \
+ && npm prune --omit=dev --ignore-scripts --offline
 
-# Run
-FROM base
+FROM base AS migrate
+COPY --from=migration-deps /src/node_modules ./node_modules
+COPY --from=migration-deps /src/package.json ./package.json
+COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
+ENV NODE_ENV=production
+CMD ["npx", "--no-install", "prisma", "migrate", "deploy"]
 
-RUN apt-get update -y && apt-get install -y openssl postgresql-client
-
-
+# Laufzeit: nur das gebaute Nitro-Bundle. Mail-Zugangsdaten kommen zur Laufzeit
+# über NUXT_*-Variablen (siehe docker-compose.yml), nicht aus dem Image.
+FROM gcr.io/distroless/nodejs24-debian13:nonroot AS runtime
+WORKDIR /src
+ENV NODE_ENV=production
 COPY --from=build /src/.output /src/.output
-# Optional, only needed if you rely on unbundled dependencies
-# COPY --from=build /src/node_modules /src/node_modules
-COPY --from=build /src/prisma /src/prisma
-COPY --from=build /src/wait-for-it.sh /src/wait-for-it.sh
-
-RUN chmod +x /src/wait-for-it.sh
-
-CMD [ "/src/entrypoint.sh" ]
+USER nonroot
+EXPOSE 3000
+CMD [".output/server/index.mjs"]

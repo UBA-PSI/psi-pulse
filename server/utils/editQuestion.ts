@@ -1,9 +1,13 @@
+import {usePrisma} from "~/server/utils/prisma";
+import {RESEARCH_CONSENT_VERSION} from "~/server/utils/research";
+import {lockAccountRow} from "~/server/utils/accountLimits";
+import {mailErrorCode} from "~/server/utils/mailError";
 import {CurrentState, PrismaClient, QuestionProgress} from "@prisma/client";
 import {SimpleQuestionState} from "~/types/questions/questions";
 import type {ReducedQuestionProgress} from "~/types/database";
 import {QuestionActiveState} from "~/types/questions/internal";
 
-const prisma = new PrismaClient();
+const prisma = usePrisma();
 
 export const getQuestionStates = (progress: ReducedQuestionProgress): SimpleQuestionState[] => {
     const states: SimpleQuestionState[] = []
@@ -97,12 +101,18 @@ export const updateQuestionState = async (questionId: string, remembered: boolea
                     owner: {
                         select: {
                             id: true,
-                            name: true,
-                            email: true,
                             email_paused_until: true,
-                            unsubscribe_emails_token: true,
+                            log_questions: true,
+                            research_pseudonym: true,
                         }
-                    }
+                    },
+                    name: true,
+                }
+            },
+            hash: true,
+            group: {
+                select: {
+                    name: true
                 }
             },
             group_id: true,
@@ -218,59 +228,47 @@ export const updateQuestionState = async (questionId: string, remembered: boolea
         }
     }
 
-    // Log question
-    await prisma.questionLog.create({
-        data: {
-            user_id: question.page.owner.id,
-            question_id: question.id,
-            remembered: remembered,
-            question_state: question.question_progress.current_state,
-            question_type: isWeekly ? "WEEKLY" : "REMINDER",
-        }
-    })
-
-    // Unpause user emails if paused
-    if (question.page.owner.email_paused_until != null) {
-        await sendUnpauseEmail(question.page.owner.email, question.page.owner.name, question.page.owner.unsubscribe_emails_token!!)
-        await prisma.user.update({
-            where: {
-                id: question.page.owner.id
-            },
+    // Forschungsdaten nur mit Einwilligung, pseudonym: keine Konto-Id, keine Frage-Id (die führte über die Seite
+    // zum Konto), nur Frage-Hash und Seitenname.
+    // Einwilligung und Pseudonym unter der Sperre der Kontozeile erneut lesen (A31): Löschen und Widerruf
+    // (research.ts) sperren dieselbe Zeile, eine laufende Bewertung kann sie also nicht mehr überholen. Der frühe
+    // Wert oben dient nur als Abkürzung – ohne Einwilligung braucht es keine Sperre.
+    const owner = question.page.owner
+    if (owner.log_questions && owner.research_pseudonym) await prisma.$transaction(async (tx) => {
+        const current = await lockAccountRow(tx, owner.id)
+        if (!current?.log_questions || !current.research_pseudonym) return
+        await tx.questionLog.create({
             data: {
-                email_paused_until: null
+                pseudonym: current.research_pseudonym,
+                question_hash: question.hash,
+                page_name: question.page.name,
+                group_name: question.group.name === "no-group" ? null : question.group.name,
+                remembered: remembered,
+                question_state: question.question_progress.current_state,
+                question_type: isWeekly ? "WEEKLY" : "REMINDER",
+                consent_version: current.research_consent_version || RESEARCH_CONSENT_VERSION,
             }
         })
-    }
-
-    // Invalidate reminder tokens
-    const page = await prisma.page.findUnique({
-        where: {
-            id: question.page.id
-        }, select: {
-            groups: {
-                select: {
-                    id: true,
-                    questions: {
-                        select: {
-                            id: true,
-                            question_progress: {
-                                select: {
-                                    current_state: true,
-                                    completed_at: true,
-                                    initial_state: true,
-                                    state_1: true,
-                                    state_2: true,
-                                    state_3: true,
-                                    state_4: true,
-                                    final_state: true,
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     })
+
+    // Pause beenden, wenn eine Frage beantwortet wird. Erst beenden (bedingt, damit parallele Antworten nur eine
+    // Mail auslösen), dann die Mail – und nur, wenn das Konto Mails will und einen gültigen Abmeldelink hat (A32).
+    // Beides frisch gelesen: „Keine Mails mehr“ kann seit dem Laden oben gesetzt worden sein.
+    if (question.page.owner.email_paused_until != null) {
+        const ended = await prisma.user.updateMany({
+            where: {id: question.page.owner.id, email_paused_until: {not: null}},
+            data: {email_paused_until: null}
+        })
+        const recipient = ended.count === 1 ? await prisma.user.findUnique({
+            where: {id: question.page.owner.id},
+            select: {email: true, name: true, receive_emails: true, unsubscribe_emails_token: true}
+        }) : null
+        if (recipient?.receive_emails && recipient.unsubscribe_emails_token) {
+            // Die Bewertung ist gespeichert; ein Versandfehler soll sie nicht als gescheitert melden
+            await sendUnpauseEmail(recipient.email, recipient.name, recipient.unsubscribe_emails_token)
+                .catch((e) => console.error("[editQuestion] Wiederaufnahme-Mail nicht verschickt:", mailErrorCode(e)))
+        }
+    }
 }
 
 const nextQuestionState = (progress: QuestionProgress): CurrentState => {

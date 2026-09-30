@@ -8,9 +8,9 @@
         <p v-else>
           {{ question.pageName }} – {{ question.groupName }}
         </p>
-        <UDropdown :items="items" :popper="{ placement: 'bottom-start' }">
-          <UButton color="white" label="" size="2xs" trailing-icon="i-heroicons-ellipsis-vertical" variant="ghost"/>
-        </UDropdown>
+        <UDropdownMenu :items="items" :content="{ side: 'bottom', align: 'start' }">
+          <UButton :aria-label="t.questionActions" color="neutral" label="" size="xs" trailing-icon="i-heroicons-ellipsis-vertical" variant="ghost"/>
+        </UDropdownMenu>
       </div>
       <div class="flex justify-between mt-1">
         <h2 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
@@ -26,7 +26,7 @@
       <div v-else class="flex items-center justify-center">
         <div>
           <UButton @click="showAnswer = true">
-            Show Answer
+            {{ t.showAnswer }}
           </UButton>
         </div>
       </div>
@@ -46,6 +46,7 @@ const props = defineProps<{
   afterArchive: () => void
 }>()
 
+const t = useUiText()
 const showAnswer = ref(false)
 
 
@@ -64,19 +65,21 @@ const archiveQuestion = async () => {
 
 const aimedAnswer = ref<boolean | null>(null)
 
-const items = [
+const items = computed(() => [
   [{
-    label: 'Archive',
+    label: t.value.archive,
     icon: 'i-heroicons-archive-box-20-solid',
-    click: () => {
+    onSelect: () => {
       archiveQuestion()
     }
   }, {
-    label: 'View Page',
+    label: t.value.viewPage,
     icon: 'i-heroicons-arrow-top-right-on-square-solid',
-    click: () => {
-      window.open(props.question.pageUrl + '#' + props.question.hash, '_blank')
+    // ohne gültige Adresse (z. B. Frage aus einer lokalen Datei) nicht anklickbar
+    disabled: pageLink(props.question.pageUrl, props.question.hash) === null,
+    onSelect: () => {
+      openPageLink(props.question.pageUrl, props.question.hash)
     }
   }]
-]
+])
 </script>

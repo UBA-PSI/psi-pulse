@@ -1,72 +1,61 @@
+import {usePrisma} from "~/server/utils/prisma";
 import {PrismaClientKnownRequestError} from "@prisma/client/runtime/library";
-import {makeToken} from "~/server/plugins/emailScheduler";
-import {sendSignupLink} from "~/server/utils/email";
+import {createPulseUser} from "~/server/utils/users";
+import {sendLoginLink, sendSignupLink} from "~/server/utils/email";
+import {PrismaClient} from "@prisma/client";
+import {normalizeEmail, normalizeName} from "~/server/utils/emailAddress";
 
-const isValidEmail = (maybeEmail: unknown): maybeEmail is string => {
-    if (typeof maybeEmail !== "string") return false;
-    if (maybeEmail.length > 255) return false;
-    const emailRegexp = /^.+@.+$/; // [one or more character]@[one or more character]
-    return emailRegexp.test(maybeEmail);
-};
+const prisma = usePrisma();
 
 export default defineEventHandler(async (event) => {
-    const {email, name, logQuestions} = await readBody<{
+    const body = await readBody<{
         email: unknown;
         name: unknown;
         logQuestions: false;
     }>(event);
-    // basic check
-    if (!isValidEmail(email)) {
+    // Genau eine Adresse, normalisiert für Rate-Limit, DB und Versand (A22)
+    const email = normalizeEmail(body?.email);
+    if (!email) {
         throw createError({
             message: "Invalid email",
             statusCode: 400
         });
     }
-    if (typeof name !== "string") {
+    const name = normalizeName(body?.name);
+    if (!name) {
         throw createError({
             message: "Invalid name",
             statusCode: 400
         });
     }
 
-    try {
-        const twoPm = new Date();
-        twoPm.setHours(14, 0, 0, 0);
-        const fourPm = new Date();
-        fourPm.setHours(16, 0, 0, 0);
+    assertMailRateLimit(event, email);
 
-        const user = await auth.createUser({
-            key: {
-                providerId: "email",
-                providerUserId: email.toLowerCase(),
-                password: null
-            },
-            attributes: {
-                name: name,
-                email: email.toLowerCase(),
-                preferred_reminder_email_delivery_time: twoPm,
-                preferred_weekly_email_delivery_time: fourPm,
-                preferred_weekly_email_delivery_day: 3,
-                unsubscribe_emails_token: makeToken(32),
-                unsubscribe_weekly_emails_token: makeToken(32),
-                log_questions: logQuestions
-            }
-        });
+    try {
+        // Einwilligung zur Forschung wird nicht beim Signup erfragt (eigener Moment, components/researchInvite.vue)
+        const lang = /^de/i.test(getHeader(event, "accept-language") || "de") ? "de" : "en";
+        const user = await createPulseUser(email, name, false, false, lang);
 
         const token = await generateEmailVerificationToken(user.userId);
-        await sendSignupLink(email, token, name)
+        // Ohne Namen: die Adresse ist noch nicht bestätigt, der Name kommt von wem auch immer das Formular ausfüllt
+        await sendSignupLink(email, token)
         return sendRedirect(event, "/email-verification");
     } catch (e) {
         if (
             e as PrismaClientKnownRequestError && (e as PrismaClientKnownRequestError).code === "P2002"
         ) {
-            throw createError({
-                message: "Email already taken",
-                statusCode: 400
-            });
+            // Adresse existiert schon: Login-Link statt Fehlermeldung, damit die Antwort
+            // nicht verrät, ob jemand ein Konto hat.
+            const user = await prisma.user.findFirst({where: {email}});
+            if (user) {
+                const token = await generateEmailVerificationToken(user.id);
+                await sendLoginLink(user.email, token, user.verified ? user.name : "");
+            }
+            return sendRedirect(event, "/email-verification");
         }
+        console.error(e);
         throw createError({
-            message: "An unknown error occurred" + e,
+            message: "An unknown error occurred",
             statusCode: 500
         });
     }

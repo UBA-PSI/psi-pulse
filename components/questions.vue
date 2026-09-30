@@ -1,7 +1,6 @@
 <template>
   <div>
-    <QuestionsStackHeadline :offset="questionOffset" :questions="flatQuestions" explanation="A question is ready to be answered again (is open) when the time set for reviewing it, based on your previous answers, has passed."
-                            title="Open Questions"/>
+    <QuestionsStackHeadline :offset="questionOffset" :questions="flatQuestions" :explanation="t.dueExplanation" :title="t.dueTitle"/>
     <div v-if="flatQuestions">
       <div v-if="questionOffset < flatQuestions.length">
         <Question
@@ -22,6 +21,7 @@ import LoadingPlaceholder from "~/components/loadingPlaceholder.vue";
 import type {InternalQuestion} from "~/types/questions/internal";
 import QuestionsStackHeadline from "~/components/questionsStackHeadline.vue";
 
+const t = useUiText()
 const questionOffset = ref(0)
 
 const flatQuestions = ref<InternalQuestion[] | null>(null)

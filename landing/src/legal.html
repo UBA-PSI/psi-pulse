@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+{{> _head.html }}
+</head>
+<body>
+{{> _nav.html }}
+
+<main id="main" class="doc">
+  <article class="wrap prose">
+    <h1>{{ heading }}</h1>
+    {{ intro }}
+    {{ version_note }}
+
+    <h2>{{ status_h }}</h2>
+    {{ status }}
+
+    <h2>{{ limits_h }}</h2>
+    {{ limits }}
+
+    <h2>{{ made_h }}</h2>
+    {{ made }}
+
+    <h2>{{ contact_h }}</h2>
+    {{ contact }}
+
+    <h2>{{ enforce_h }}</h2>
+    {{ enforce }}
+  </article>
+</main>
+
+{{> _footer.html }}
+</body>
+</html>

@@ -1,5 +1,5 @@
 <template>
-  <nav aria-label="Progress">
+  <nav :aria-label="t.progress">
     <ol class="flex items-center  justify-between w-full mb-6 px-4 pr-8" role="list">
       <li v-for="(step, stepIdx) in steps" :key="step.label"
           :style="calculateStepStyle(stepIdx, steps.length)"
@@ -61,6 +61,7 @@ const props = defineProps<{
   aimedAnswer: boolean | null,
   question: InternalQuestion
 }>()
+const t = useUiText()
 
 function calculateStepStyle(stepIdx: number, stepsLength: number) {
   const stepPercentage = 100 / stepsLength;
@@ -145,7 +146,7 @@ const steps: ComputedRef<ProgressState[]> = computed(() => {
       }
     }
     steps.push({
-      label: state.label,
+      label: t.value.stateLabel[state.label] ?? state.label,
       state: currentState
     })
   }

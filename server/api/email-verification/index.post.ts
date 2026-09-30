@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
             status: 401
         });
     }
+    assertMailRateLimit(event, session.user.email);
     try {
         const token = await generateEmailVerificationToken(session.user.userId);
         await sendLoginLink(session.user.email, token, session.user.name);

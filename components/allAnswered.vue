@@ -6,7 +6,7 @@
           <UIcon aria-hidden="true" class=" h-5 w-5 text-green-400 dark:text-green-500" name="i-heroicons-check-circle"/>
         </div>
         <div class="ml-3">
-          <p class="text-sm font-medium text-green-800 dark:text-green-300">{{ displayedMessage }}</p>
+          <p role="status" class="text-sm font-medium text-green-800 dark:text-green-300">{{ displayedMessage }}</p>
         </div>
       </div>
     </div>
@@ -18,5 +18,6 @@ const props = defineProps<{
   message?: string
 }>()
 
-const displayedMessage = props.message ?? 'All questions have been answered!'
+const t = useUiText()
+const displayedMessage = computed(() => props.message ?? t.value.allAnswered)
 </script>

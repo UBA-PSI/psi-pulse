@@ -5,16 +5,16 @@
         Log In
       </h1>
       <UForm ref="form" :state="state" :validate="validate" class="space-y-4 w-80" @submit="onSubmit">
-        <UFormGroup label="Email" name="email">
+        <UFormField label="Email" name="email">
           <UInput v-model="state.email" icon="i-heroicons-envelope" placeholder="you@example.com"/>
-        </UFormGroup>
+        </UFormField>
         <UButton :loading="loading" block type="submit">
           Login
         </UButton>
       </UForm>
       <div class="mt-10">
-        Not a member?
-        <NuxtLink class="text-primary" to="/signup">Sign up</NuxtLink>
+        No account yet?
+        <NuxtLink class="text-primary underline" to="/signup">Sign up</NuxtLink>
       </div>
     </CustomCard>
   </div>
@@ -22,40 +22,32 @@
 
 <script lang="ts" setup>
 import {FetchError} from "ofetch";
-import type {FormError, FormSubmitEvent} from "#ui/types";
+import type {FormError, FormSubmitEvent} from "@nuxt/ui";
 
 useHead({
   title: 'Login'
 })
 
+// Angemeldet gibt es hier nichts zu tun: gleich zum Dashboard (die globale Middleware hat den Nutzer schon geladen).
 definePageMeta({
   layout: "not-authenticated",
+  middleware: () => {
+    if (useUser().value) return navigateTo("/home", {replace: true});
+  },
 });
-const user = useUser();
 
-onMounted(async () => {
-  if (user.value) {
-    const token = await $fetch('/api/v1/foreignSession')
-    const url = (window.location != window.parent.location)
-        ? document.referrer
-        : document.location.href;
-    window.parent.postMessage(token, url);
-    await navigateTo("/");
-  }
-});
 const state = reactive({
   email: undefined,
 })
 
 const validate = (state: any): FormError[] => {
   const errors = []
-  if (!state.email) errors.push({path: 'email', message: 'Required'})
+  if (!state.email) errors.push({name: 'email', message: 'Required'})
   return errors
 }
 
 const loading = ref(false)
 const form = ref()
-
 
 async function onSubmit(event: FormSubmitEvent<any>) {
   loading.value = true
@@ -70,7 +62,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
     await navigateTo("/email-verification");
   } catch (e) {
     const err = e as FetchError;
-    form.value?.setErrors([{"path": "email", "message": err.response._data.message}])
+    form.value?.setErrors([{"name": "email", "message": err.response._data.message}])
   }
   loading.value = false
 }

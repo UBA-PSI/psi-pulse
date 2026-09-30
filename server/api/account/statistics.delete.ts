@@ -1,6 +1,8 @@
+import {usePrisma} from "~/server/utils/prisma";
+import {deleteResearchData} from "~/server/utils/research";
 import {PrismaClient} from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = usePrisma();
 
 export default defineEventHandler(async (event) => {
     const authRequest = auth.handleRequest(event);
@@ -13,9 +15,5 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    await prisma.questionLog.deleteMany({
-        where: {
-            user_id: session?.user.userId
-        }
-    })
+    await deleteResearchData(session.user.userId)
 })

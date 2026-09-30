@@ -1,43 +1,37 @@
 <template>
-  <div class="mt-8 flex justify-center">
-    <div class="flex justify-between max-w-2xl w-full items-center">
-      Do you really want to unsubscribe from weekly emails?
-      <UButton color="red" @click="handleUnsubscribe">
-        Unsubscribe
-      </UButton>
-      <div v-if="errorMessage">
-        <div>{{ errorMessage }}</div>
-      </div>
+  <div class="mt-8 flex justify-center" :lang="lang">
+    <div class="max-w-2xl w-full space-y-4">
+      <p class="font-semibold">{{ t.question }}</p>
+      <p class="text-sm">{{ t.note }}</p>
+      <!-- Bewusst mit Bestätigung: Link-Scanner in Mailprogrammen rufen Links automatisch auf -->
+      <UButton color="error" @click="handleUnsubscribe">{{ t.button }}</UButton>
+      <p v-if="errorMessage" role="alert">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 import {FetchError} from "ofetch";
 
-useHead({
-  title: 'Unsubscribe From Weekly'
-})
-
-definePageMeta({
-  layout: "not-authenticated",
-});
-
 const route = useRoute();
+const lang = computed(() => route.query.lang === "en" ? "en" : "de")
+const TEXT = {
+  de: {question: "Möchten Sie die Wochenauswahl abbestellen?", note: "Tägliche Erinnerungen an fällige Fragen kommen weiter.", button: "Wochenauswahl abbestellen", error: "Das hat nicht geklappt. Der Link ist womöglich veraltet."},
+  en: {question: "Do you want to stop the weekly selection?", note: "Daily reminders for due questions continue.", button: "Stop weekly selection", error: "That did not work. The link may be out of date."}
+}
+const t = computed(() => TEXT[lang.value])
+
+useHead({title: computed(() => lang.value === "de" ? "Wochenauswahl abbestellen" : "Unsubscribe"), htmlAttrs: {lang}})
+definePageMeta({layout: "not-authenticated"});
+
 let errorMessage = ref<string | null>(null);
 
 const handleUnsubscribe = async () => {
   try {
-    await $fetch(`/api/unsubscribe/weekly-emails/${route.params.token}`, {
-      method: "DELETE"
-    })
-    await navigateTo("/unsubscribe/success");
+    await $fetch(`/api/unsubscribe/weekly-emails/${route.params.token}`, {method: "DELETE"})
+    await navigateTo(`/unsubscribe/success?lang=${lang.value}`);
   } catch (e) {
     const err = e as FetchError;
-    if (err.response == undefined) {
-      errorMessage.value = "Unknown error"
-      return
-    }
-    errorMessage.value = err.response._data.message
+    errorMessage.value = t.value.error
   }
 }
 </script>

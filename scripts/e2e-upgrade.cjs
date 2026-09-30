@@ -1,0 +1,106 @@
+// Dependency migration regression: legacy sessions, CSRF, expiry, browser interactions and magic-link login.
+// Use only with a local, synthetic database and Mailpit.
+const assert = require('node:assert/strict');
+const {execFileSync} = require('node:child_process');
+const {randomBytes, createHash} = require('node:crypto');
+const {chromium} = require('playwright');
+const B = process.env.PULSE_TEST_URL || 'http://localhost:3000';
+const DB = sql => execFileSync('docker', ['exec', process.env.PULSE_TEST_DB || 'database', 'psql', '-U', 'postgres', '-At', '-c', sql]).toString().trim();
+const id = 'upgrade' + randomBytes(8).toString('hex');
+const sid = randomBytes(20).toString('hex');
+const api = randomBytes(32).toString('hex');
+const now = Date.now();
+const req = (path, options = {}) => fetch(B + path, {redirect: 'manual', ...options, headers: {Cookie: `auth_session=${sid}`, ...options.headers}});
+(async () => {
+  DB(`insert into "User"(id,email,name,verified,receive_emails) values ('${id}','${id}@example.org','Upgrade',true,false)`);
+  DB(`insert into "Session"(id,user_id,active_expires,idle_expires) values ('${sid}','${id}',${now-1000},${now+3600000})`);
+  DB(`insert into "ThirdPartySession"(id,user_id,expires) values ('${api}','${id}',${now+3600000})`);
+  const response = await req('/api/user');
+  assert.equal((await response.json()).user.userId, id);
+  assert.match(response.headers.get('set-cookie'), /HttpOnly/i);
+  assert.match(response.headers.get('set-cookie'), /Secure/i);
+  assert.equal(DB(`select active_expires > ${now} from "Session" where id='${sid}'`), 't');
+  assert.equal((await req('/api/logout', {method: 'POST'})).status, 403);
+  assert.equal((await req('/api/user', {method: 'DELETE', headers: {Origin: 'https://evil.example'}})).status, 403);
+  const expired = randomBytes(20).toString('hex');
+  DB(`insert into "Session"(id,user_id,active_expires,idle_expires) values ('${expired}','${id}',${now-2000},${now-1000})`);
+  assert.equal((await (await req('/api/user', {headers: {Cookie: `auth_session=${expired}`}})).json()).user, null);
+  assert.equal(DB(`select count(*) from "Session" where id='${expired}'`), '0');
+  console.log('PASS legacy session renewal, cookie flags, expired session, CSRF');
+  for (const question of ['Upgrade question alpha?', 'Upgrade question beta?']) {
+    const res = await req('/api/v1/questions', {method: 'POST', headers: {'X-API-KEY': api, 'Content-Type': 'application/json'}, body: JSON.stringify({question, answer: 'Test answer', key: question, hash: createHash('sha1').update('key:' + question).digest('hex'), states: null, pageName: 'Upgrade page', pageUrl: 'https://example.org/upgrade', groupName: 'Upgrade group', remembered: true})});
+    assert.equal(res.status, 200, await res.text());
+  }
+  const browser = await chromium.launch();
+  try {
+    const context = await browser.newContext({viewport: {width: 1440, height: 1000}, locale: 'en-US'});
+    await context.addCookies([{name: 'auth_session', value: sid, url: B}]);
+    const page = await context.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    await page.goto(B + '/questions', {waitUntil: 'networkidle'});
+    assert.equal(await page.getByText('Upgrade question alpha?', {exact: true}).count(), 1);
+    await page.getByPlaceholder('Filter questions...').fill('beta');
+    assert.equal(await page.getByText('Upgrade question alpha?', {exact: true}).count(), 0);
+    await page.getByPlaceholder('Filter questions...').fill('');
+    await page.getByText('Upgrade question alpha?', {exact: true}).click();
+    await page.getByRole('dialog').waitFor();
+    await page.waitForTimeout(300);
+    await page.screenshot({path: '/tmp/pulse-upgrade-question.png'});
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog').waitFor({state: 'hidden'});
+    await page.getByRole('button', {name: 'Select', exact: true}).click();
+    await page.getByText('Upgrade question alpha?', {exact: true}).click();
+    await page.getByRole('button', {name: 'More actions'}).click();
+    const archived = page.waitForResponse(r => r.url().includes('/api/questions/') && r.request().method() === 'PUT');
+    await page.getByRole('menuitem', {name: 'Archive', exact: true}).click();
+    assert.equal((await archived).status(), 200);
+    await page.waitForLoadState('networkidle');
+    assert.equal(DB(`select count(*) from "Question" q join "Page" p on p.id=q.page_id where p.owner_id='${id}' and q.archived`), '1');
+    await page.getByRole('button', {name: 'Account', exact: true}).first().click();
+    await page.getByRole('menuitem', {name: 'Settings'}).click();
+    await page.waitForURL('**/settings');
+    await page.getByRole('button', {name: 'Delete Account', exact: true}).click();
+    await page.getByRole('dialog', {name: 'Delete Account'}).waitFor();
+    await page.getByRole('button', {name: 'Cancel', exact: true}).click();
+    await page.getByRole('dialog').waitFor({state: 'hidden'});
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', {name: 'Export Data'}).click();
+    assert.equal((await download).suggestedFilename(), 'pulse-data.json');
+    await page.screenshot({path: '/tmp/pulse-upgrade-settings.png'});
+    await page.setViewportSize({width: 390, height: 844});
+    await page.getByRole('button', {name: 'Open main menu'}).click();
+    await page.getByRole('dialog').waitFor();
+    await page.getByRole('button', {name: 'Close menu', exact: true}).click();
+    await page.getByRole('dialog').waitFor({state: 'hidden'});
+    assert.deepEqual(errors, []);
+    console.log('PASS browser table, filtering, detail modal, bulk archive, account menu, settings modal, export, mobile navigation');
+    // Real browser login: the existing single-use magic link must hydrate and establish a session.
+    const token = randomBytes(32).toString('hex');
+    DB(`insert into "EmailVerificationToken"(id,user_id,expires) values ('${token}','${id}',${Date.now()+3600000})`);
+    await context.clearCookies();
+    await page.goto(B + '/email-verification/' + token, {waitUntil: 'networkidle'});
+    await page.getByRole('button', {name: /sign in|anmelden/i}).click();
+    await page.waitForURL('**/home');
+    assert.equal((await page.evaluate(async () => (await (await fetch('/api/user')).json()).user)).userId, id);
+    console.log('PASS browser magic-link confirmation and login');
+    await page.setViewportSize({width: 1440, height: 1000});
+    await page.getByRole('button', {name: 'Account', exact: true}).first().click();
+    await page.getByRole('menuitem', {name: 'Sign out'}).click();
+    await page.waitForURL('**/login');
+    assert.equal(await page.evaluate(async () => (await (await fetch('/api/user')).json()).user), null);
+    console.log('PASS browser logout');
+    await page.getByRole('button', {name: 'Login', exact: true}).click();
+    await page.getByText('Required', {exact: true}).waitFor();
+    await page.getByLabel('Email', {exact: true}).fill('unknown-' + id + '@example.org');
+    await page.getByRole('button', {name: 'Login', exact: true}).click();
+    await page.waitForURL('**/email-verification');
+    console.log('PASS browser form validation and login request');
+  } finally { await browser.close() }
+  assert.equal((await req('/api/logout', {method: 'POST', headers: {Origin: B}})).status, 302);
+  assert.equal((await (await req('/api/user')).json()).user, null);
+  console.log('PASS session revocation');
+})().finally(() => {
+  DB(`with d as (delete from "Question" where page_id in (select id from "Page" where owner_id='${id}') returning question_progress_id) delete from "QuestionProgress" where id in (select question_progress_id from d)`);
+  DB(`delete from "User" where id='${id}'`);
+}).catch(e => { console.error(e); process.exitCode = 1 });

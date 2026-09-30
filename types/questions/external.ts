@@ -1,6 +1,7 @@
 import type {SimpleQuestionState} from "~/types/questions/questions";
 
 export interface ExternalQuestionPutBody {
+    key?: string,
     question: string,
     answer: string,
     hash: string,
@@ -29,10 +30,14 @@ export interface ExternalQuestionStatesPutBody {
 export interface ExternalQuestionPostBody {
     remembered: boolean,
     pageName: string,
+    // Embed v2: aktueller Text, damit Mails nach Textkorrekturen (bei gleichem key) stimmen
+    question?: string,
+    answer?: string,
 }
 
 export interface ExternalQuestion {
     hash: string,
+    pageName?: string,
     isOpen: boolean,
     states: SimpleQuestionState[]
 }

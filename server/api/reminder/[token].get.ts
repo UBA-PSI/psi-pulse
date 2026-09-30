@@ -1,9 +1,12 @@
+import {usePrisma} from "~/server/utils/prisma";
+import {reminderLinkActive} from "~/server/utils/mailLinks";
+import {safePageUrl} from "~/server/utils/pageUrl";
 import {PrismaClient} from "@prisma/client";
 import {questionCanBeAnswered} from "~/server/utils/questionCanBeAnswered";
 import {getQuestionStates, questionActiveStateGenerator} from "~/server/utils/editQuestion";
 import {InternalQuestion} from "~/types/questions/internal";
 
-const prisma = new PrismaClient();
+const prisma = usePrisma();
 
 export default defineEventHandler(async (event): Promise<InternalQuestion[]> => {
     if (!event.context.params) {
@@ -22,9 +25,11 @@ export default defineEventHandler(async (event): Promise<InternalQuestion[]> => 
         })
     }
 
+    // Gilt 30 Tage ab Versand (A26), auch wenn das stündliche Aufräumen die Mail noch nicht gelöscht hat
     let reminder = await prisma.reminderEmail.findUnique({
         where: {
-            token: reminderToken
+            token: reminderToken,
+            ...reminderLinkActive(),
         }, select: {
             id: true,
             questions: {
@@ -85,7 +90,7 @@ export default defineEventHandler(async (event): Promise<InternalQuestion[]> => 
     reminder.questions.forEach((question) => {
         newQuestions.push({
             pageName: question.page.name,
-            pageUrl: question.page.url,
+            pageUrl: safePageUrl(question.page.url),
             groupName: question.group.name,
             id: question.id,
             question: question.text,

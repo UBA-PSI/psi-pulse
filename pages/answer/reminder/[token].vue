@@ -1,5 +1,5 @@
 <template>
-  <QuestionsStackHeadline :offset="questionOffset" :questions="flatQuestions" title="Remaining Questions"/>
+  <QuestionsStackHeadline :offset="questionOffset" :questions="flatQuestions" :title="t.reminderTitle"/>
   <div v-if="flatQuestions">
     <div v-if="questionOffset < flatQuestions.length">
       <Question :getUpdateUrl="getUpdateUrl"
@@ -11,41 +11,38 @@
   </div>
   <LoadingPlaceholder v-else-if="!errorMessage"/>
   <ExternalErrorAlert v-if="errorMessage" :errorMessage="errorMessage"/>
+  <ResearchInvite kind="reminder" :token="String(route.params.token)"
+                  :visible="!!flatQuestions && questionOffset >= flatQuestions.length"/>
 </template>
 <script lang="ts" setup>
 import {onMounted} from "@vue/runtime-core";
-import {FetchError} from "ofetch";
 import LoadingPlaceholder from "~/components/loadingPlaceholder.vue";
 import type {InternalQuestion} from "~/types/questions/internal";
 import QuestionsStackHeadline from "~/components/questionsStackHeadline.vue";
-
-useHead({
-  title: 'Answer Page'
-})
 
 definePageMeta({
   layout: "not-authenticated",
 });
 
 const route = useRoute();
+const t = useUiText()
+useHead({title: computed(() => t.value.reminderTitle)})
+// Sprache des Kontos über das Token aus der Mail, sonst ?lang= bzw. Accept-Language
+await useAnswerPageLang({kind: "reminder", token: String(route.params.token ?? "")})
+
 let errorMessage = ref<string | null>(null);
 const flatQuestions = ref<InternalQuestion[] | null>(null)
 const questionOffset = ref(0)
 
 onMounted(async () => {
   if (!route.params.token) {
-    errorMessage.value = "No token provided";
+    errorMessage.value = t.value.linkInvalid;
     return;
   }
   try {
     flatQuestions.value = await $fetch(`/api/reminder/${route.params.token}`)
   } catch (e) {
-    const err = e as FetchError;
-    if (err.response == undefined) {
-      errorMessage.value = "Unknown error"
-      return
-    }
-    errorMessage.value = err.response._data.message
+    errorMessage.value = answerErrorText(e, t.value)
   }
 })
 

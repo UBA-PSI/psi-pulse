@@ -1,16 +1,14 @@
-import {PrismaClient} from "@prisma/client";
+import {usePrisma} from "~/server/utils/prisma";
+import protectInternalRoute from "~/server/utils/protectInternalRoute";
+import ownQuestion from "~/server/utils/ownQuestion";
 
-const prisma = new PrismaClient();
+const prisma = usePrisma();
 
+// Nur angemeldet und nur eigene Fragen (vorher ohne jede Prüfung: wer eine Frage-ID kannte, etwa aus einem
+// Link in einer Erinnerungsmail, konnte sie löschen).
 export default defineEventHandler(async (event) => {
-    if (!event.context.params) {
-        throw createError({
-            message: "No id provided",
-            statusCode: 404
-        })
-    }
-
-    const id = event.context.params.id
+    const session = await protectInternalRoute(event);
+    const id = await ownQuestion(event.context.params?.id, session.user.userId)
     await prisma.question.delete({
         where: {
             id: id

@@ -1,23 +1,14 @@
 <template>
-  <UserStats :stats="stats"/>
-  <Questions/>
+  <div/>
 </template>
 
 <script lang="ts" setup>
-import UserStats from "~/components/userStats.vue";
-import type {AccountStats} from "~/types/account";
-
-useHead({
-  title: 'Home'
-})
-
+// In Produktion liefert Caddy auf bew unter / die statische Startseite (landing/) aus, diese Seite
+// erreicht dann niemand. Sie bleibt für die lokale Entwicklung und als Rückfall, falls der Proxy
+// / doch an die App gibt: angemeldet zum Dashboard, sonst zur Anmeldung. Die Weiterleitung steht
+// in der Middleware, damit kein Layout rendert (das Standard-Layout verlangt einen angemeldeten Nutzer).
 definePageMeta({
-  middleware: ["protected"],
-});
-
-const stats = ref<AccountStats | null>(null);
-
-onMounted(async () => {
-  stats.value = await $fetch("/api/account/stats");
+  layout: false,
+  middleware: () => navigateTo(useUser().value ? "/home" : "/login", {replace: true}),
 });
 </script>

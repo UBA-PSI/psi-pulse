@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+{{> _head.html }}
+</head>
+<body>
+{{> _nav.html }}
+
+<main id="main" class="doc">
+  <article class="wrap prose">
+    <h1>{{ heading }}</h1>
+    {{ intro }}
+
+    <nav class="toc" aria-labelledby="toc-h">
+      <p class="toc-title" id="toc-h">{{ toc_h }}</p>
+      <ol>
+        <li><a href="#einbinden">{{ embed_h }}</a></li>
+        <li><a href="#fragen-schreiben">{{ markup_h }}</a></li>
+        <li><a href="#einstellungen">{{ config_h }}</a></li>
+        <li><a href="#aussehen">{{ style_h }}</a></li>
+        <li><a href="#verhalten">{{ behave_h }}</a></li>
+        <li><a href="#datenschutz">{{ privacy_h }}</a></li>
+        <li><a href="#lernlogik">{{ logic_h }}</a></li>
+        <li><a href="#kontakt">{{ contact_h }}</a></li>
+      </ol>
+    </nav>
+
+    <h2 id="einbinden">{{ embed_h }}</h2>
+    {{ embed }}
+
+    <h2 id="fragen-schreiben">{{ markup_h }}</h2>
+    {{ markup }}
+
+    <h2 id="einstellungen">{{ config_h }}</h2>
+    {{ config }}
+
+    <h2 id="aussehen">{{ style_h }}</h2>
+    {{ style }}
+
+    <h2 id="verhalten">{{ behave_h }}</h2>
+    {{ behave }}
+
+    <h2 id="datenschutz">{{ privacy_h }}</h2>
+    {{ privacy }}
+
+    <h2 id="lernlogik">{{ logic_h }}</h2>
+    {{ logic }}
+
+    <h2 id="kontakt">{{ contact_h }}</h2>
+    {{ contact }}
+  </article>
+</main>
+
+{{> _footer.html }}
+</body>
+</html>

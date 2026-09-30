@@ -1,11 +1,14 @@
+import {usePrisma} from "~/server/utils/prisma";
+import {safePageUrl} from "~/server/utils/pageUrl";
 import {PrismaClient} from "@prisma/client";
 import {questionCanBeAnswered} from "~/server/utils/questionCanBeAnswered";
 import {getQuestionStates, questionActiveStateGenerator} from "~/server/utils/editQuestion";
 import {InternalQuestion} from "~/types/questions/internal";
 import {SimpleQuestionState} from "~/types/questions/questions";
 import {isUUID} from "~/server/utils/string";
+import {reminderLinkValid} from "~/server/utils/mailLinks";
 
-const prisma = new PrismaClient();
+const prisma = usePrisma();
 
 export default defineEventHandler(async (event): Promise<InternalQuestion | null> => {
     if (!event.context.params) {
@@ -60,6 +63,8 @@ export default defineEventHandler(async (event): Promise<InternalQuestion | null
                     name: true,
                 }
             },
+            // Link „Nur diese Frage beantworten“ gilt 30 Tage ab Versand der Mail (A26)
+            reminder_email: {select: {sent_at: true}},
             question_progress: {
                 select: {
                     current_state: true,
@@ -85,7 +90,8 @@ export default defineEventHandler(async (event): Promise<InternalQuestion | null
             statusCode: 404
         })
     }
-    if (question.question_progress.reminder_token !== query.token) {
+    if (question.question_progress.reminder_token !== query.token
+        || !reminderLinkValid(question.reminder_email?.sent_at)) {
         throw createError({
             message: "Not matching tokens",
             statusCode: 404
@@ -97,7 +103,7 @@ export default defineEventHandler(async (event): Promise<InternalQuestion | null
 
     const newQuestion: InternalQuestion = {
         pageName: question.page.name,
-        pageUrl: question.page.url,
+        pageUrl: safePageUrl(question.page.url),
         groupName: question.group.name,
         id: question.id,
         question: question.text,

@@ -1,5 +1,5 @@
 <template>
-  <QuestionsStackHeadline :offset="0" :questions="null" title="Question"/>
+  <QuestionsStackHeadline :offset="0" :questions="null" :title="t.answerQuestionHeading"/>
   <div v-if="question">
     <div v-if="!answered">
       <Question :getUpdateUrl="getUpdateUrl"
@@ -7,45 +7,44 @@
                 :question="question"
       />
     </div>
-    <AllAnswered v-else/>
+    <AllAnswered v-else :message="t.questionDone"/>
   </div>
-  <LoadingPlaceholder v-else-if="!errorMessage"/>
+  <LoadingPlaceholder v-else-if="!errorMessage && !notDue"/>
+  <AllAnswered v-if="notDue" :message="t.notDue"/>
   <ExternalErrorAlert v-if="errorMessage" :errorMessage="errorMessage"/>
 </template>
 <script lang="ts" setup>
 import {onMounted} from "@vue/runtime-core";
-import {FetchError} from "ofetch";
 import type {InternalQuestion} from "~/types/questions/internal";
 import QuestionsStackHeadline from "~/components/questionsStackHeadline.vue";
 import LoadingPlaceholder from "~/components/loadingPlaceholder.vue";
-
-useHead({
-  title: 'Answer Page'
-})
 
 definePageMeta({
   layout: "not-authenticated",
 });
 
 const route = useRoute();
+const t = useUiText()
+useHead({title: computed(() => t.value.answerQuestionTitle)})
+// Sprache des Kontos über das Token aus der Mail, sonst ?lang= bzw. Accept-Language
+await useAnswerPageLang({kind: "question", id: String(route.params.id), token: String(route.query.token ?? "")})
+
 let question = ref<InternalQuestion | null>(null);
 let errorMessage = ref<string | null>(null);
+const notDue = ref(false)
 const answered = ref(false)
 
 onMounted(async () => {
   if (!route.query.token) {
-    errorMessage.value = "No token provided";
+    errorMessage.value = t.value.linkInvalid;
     return;
   }
   try {
     question.value = await $fetch(`/api/questions/${route.params.id}?token=${route.query.token}&archived=false&open=true`)
+    // null: Token stimmt, die Frage ist aber gerade nicht dran
+    if (!question.value) notDue.value = true
   } catch (e) {
-    const err = e as FetchError;
-    if (err.response == undefined) {
-      errorMessage.value = "Unknown error"
-      return
-    }
-    errorMessage.value = err.response._data.message
+    errorMessage.value = answerErrorText(e, t.value)
   }
 })
 

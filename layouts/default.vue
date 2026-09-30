@@ -3,8 +3,8 @@
     <header class="bg-white dark:bg-transparent">
       <nav aria-label="Global" class="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
         <div class="flex lg:flex-1">
-          <nuxt-link class="-m-1.5 p-1.5" to="/">
-            <span class="sr-only">Pulse</span>
+          <nuxt-link class="-m-1.5 p-1.5" to="/home">
+            <span class="sr-only">psi-pulse</span>
             <img alt="" class="h-6 w-auto fill-red-300 dark:hidden" src="/logo.svg"/>
             <img alt="" class="h-6 w-auto fill-red-300 hidden dark:inline-block" src="/logo-dark.svg"/>
           </nuxt-link>
@@ -23,18 +23,11 @@
           </nuxt-link>
         </div>
         <div class="hidden lg:flex lg:flex-1 lg:justify-end">
-          <UButton
-              :icon="'i-heroicons-code-bracket'"
-              aria-label="Integration"
-              color="gray"
-              target="_blank"
-              to="/integrate" variant="ghost"
-          />
           <ClientOnly>
             <UButton
                 :icon="isDark ? 'i-heroicons-moon-20-solid' : 'i-heroicons-sun-20-solid'"
                 aria-label="Theme"
-                color="gray"
+                color="neutral"
                 variant="ghost"
                 @click="isDark = !isDark"
             />
@@ -43,11 +36,10 @@
               <div class="w-8 h-8"/>
             </template>
 
-            <UDropdown :items="items" :popper="{ placement: 'bottom-start' }"
-                       :ui="{ item: { disabled: 'cursor-text select-text' }, background: 'dark:bg-gray-900'  }">
+            <UDropdownMenu :items="items" :content="{ side: 'bottom', align: 'start' }">
               <UButton
-                  aria-label="Theme"
-                  color="gray"
+                  aria-label="Account"
+                  color="neutral"
                   icon="i-heroicons-user"
                   variant="ghost"
               />
@@ -66,18 +58,18 @@
                 <span class="truncate">{{ item.label }}</span>
                 <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500 ms-auto"/>
               </template>
-            </UDropdown>
+            </UDropdownMenu>
           </ClientOnly>
         </div>
       </nav>
       <ClientOnly>
-        <Dialog :open="mobileMenuOpen" as="div" class="lg:hidden" @close="mobileMenuOpen = false">
+        <USlideover v-model:open="mobileMenuOpen" title="Menu"><template #content>
           <div class="fixed inset-0 z-10"/>
-          <DialogPanel
+          <div
               class="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white dark:bg-gray-900 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
             <div class="flex items-center justify-between">
               <a class="-m-1.5 p-1.5" href="#">
-                <span class="sr-only">Pulse</span>
+                <span class="sr-only">psi-pulse</span>
                 <img alt="" class="h-6 w-auto fill-red-300 dark:hidden" src="/logo.svg"/>
                 <img alt="" class="h-6 w-auto fill-red-300 hidden dark:inline-block" src="/logo-dark.svg"/>
               </a>
@@ -97,18 +89,11 @@
                   </nuxt-link>
                 </div>
                 <div class="py-6">
-                  <UButton
-                      :icon="'i-heroicons-code-bracket'"
-                      aria-label="Integration"
-                      color="gray"
-                      target="_blank"
-                      to="/integrate" variant="ghost"
-                  />
                   <ClientOnly>
                     <UButton
                         :icon="isDark ? 'i-heroicons-moon-20-solid' : 'i-heroicons-sun-20-solid'"
                         aria-label="Theme"
-                        color="gray"
+                        color="neutral"
                         variant="ghost"
                         @click="isDark = !isDark"
                     />
@@ -117,11 +102,10 @@
                       <div class="w-8 h-8"/>
                     </template>
                   </ClientOnly>
-                  <UDropdown :items="items" :popper="{ placement: 'bottom-start' }"
-                             :ui="{ item: { disabled: 'cursor-text select-text' }, background: 'dark:bg-gray-900'}">
+                  <UDropdownMenu :items="items" :content="{ side: 'bottom', align: 'start' }">
                     <UButton
-                        aria-label="Theme"
-                        color="gray"
+                        aria-label="Account"
+                        color="neutral"
                         icon="i-heroicons-user"
                         variant="ghost"
                     />
@@ -140,15 +124,15 @@
                       <span class="truncate">{{ item.label }}</span>
                       <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500 ms-auto"/>
                     </template>
-                  </UDropdown>
+                  </UDropdownMenu>
                 </div>
               </div>
             </div>
-          </DialogPanel>
-        </Dialog>
+          </div>
+        </template></USlideover>
       </ClientOnly>
     </header>
-    <UDivider class="mb-10"/>
+    <USeparator class="mb-10"/>
     <main class="flex-grow">
       <slot/>
     </main>
@@ -157,12 +141,13 @@
 </template>
 
 <script lang="ts" setup>
-import {Dialog, DialogPanel} from '@headlessui/vue'
+
 
 const navigationHeader = [
-  {name: 'Home', href: '/', target: ''},
+  {name: 'Home', href: '/home', target: ''},
   {name: 'Questions', href: '/questions', target: ''},
-  {name: 'Explanation', href: '/explanation', target: '_blank'},
+  // Erklärung: Abschnitt „So funktioniert’s“ der Startseite (/about leitet je nach Sprache dorthin)
+  {name: 'How it works', href: '/about', target: '_blank'},
 ]
 
 const mobileMenuOpen = ref(false)
@@ -190,12 +175,12 @@ const items = [
   }], [{
     label: 'Settings',
     icon: 'i-heroicons-cog-8-tooth',
-    click: settings
+    onSelect: settings
 
   }, {
     label: 'Sign out',
     icon: 'i-heroicons-arrow-left-on-rectangle',
-    click: handleLogout
+    onSelect: handleLogout
   }]
 ]
 

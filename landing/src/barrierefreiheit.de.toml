@@ -1,0 +1,81 @@
+# Erklärung zur Barrierefreiheit (/barrierefreiheit/). Schlüssel müssen mit barrierefreiheit.en.toml übereinstimmen.
+# Aufbau, Rechtsgrundlagen, Kontakt und Durchsetzungsverfahren wie in der Erklärung auf psi.uni-bamberg.de
+# (psi-website: hugo/content/barrierefreiheit/_index.de.md). Werte sind HTML; {{ schluessel }} setzt einen
+# anderen Schlüssel dieser Datei ein. Offene Stellen als [[OFFEN: …]]: der Build meldet sie, deploy.sh bricht ab.
+
+# Vom Lehrstuhl zu setzen, Format wie „26. September 2026“
+date_created = "27. September 2026"
+date_reviewed = "27. September 2026"
+
+title = "Erklärung zur Barrierefreiheit · psi-pulse · Universität Bamberg"
+description = "Wie barrierefrei psi-pulse ist, welche Einschränkungen bekannt sind und wie Sie uns Barrieren melden können."
+heading = "Erklärung zur Barrierefreiheit"
+
+intro = '''
+<p>Der Lehrstuhl für Privatsphäre und Sicherheit in Informationssystemen der Otto-Friedrich-Universität Bamberg ist bemüht, den Dienst psi-pulse barrierefrei zugänglich zu machen. Rechtsgrundlagen sind Art. 14 des Bayerischen Behindertengleichstellungsgesetzes (BayBGG) und die §§ 9 bis 11 der Bayerischen Digitalverordnung (BayDiV), mit denen die Richtlinie (EU) 2016/2102 umgesetzt wird. Nach § 9 Abs. 1 BayDiV gelten die Anforderungen aus § 3 der Barrierefreie-Informationstechnik-Verordnung (BITV 2.0). Konkretisiert werden sie durch die europäische Norm EN 301 549, die für Websites auf die Web Content Accessibility Guidelines (WCAG) 2.1 in der Konformitätsstufe AA verweist.</p>
+<p>Diese Erklärung gilt für psi-pulse unter pulse.psi.uni-bamberg.de:</p>
+<ul>
+<li>die Startseite, die Seite für Entwickler und diese Erklärung, jeweils auf Deutsch und Englisch,</li>
+<li>die Web-App: Anmeldung, Registrierung, Ihr Konto mit Fragen und Einstellungen sowie die Seiten, auf denen Sie Fragen aus den Erinnerungsmails beantworten,</li>
+<li>das einbettbare Widget, mit dem psi-pulse-Fragen in Vorlesungsskripten und anderen Webseiten erscheinen.</li>
+</ul>
+<p>Die Webseiten, in die das Widget eingebettet ist, gehören nicht zu psi-pulse; für sie ist ihr jeweiliger Anbieter verantwortlich. Für die Website des Lehrstuhls gilt ihre eigene <a href="https://psi.uni-bamberg.de/de/barrierefreiheit/">Erklärung zur Barrierefreiheit</a>, für die übrigen Seiten der Universität Bamberg die <a href="https://www.uni-bamberg.de/its/verfahrensweisen/barrierefreiheit-erklaerung/">Allgemeine Erklärung zur Barrierefreiheit der Universität Bamberg</a>.</p>
+'''
+version_note = ""
+
+status_h = "Stand der Vereinbarkeit mit den Anforderungen"
+status = '''
+<p>psi-pulse ist mit den Anforderungen <strong>teilweise vereinbar</strong>. Die Abweichungen und die Bereiche, die noch nicht vollständig geprüft sind, sind im folgenden Abschnitt aufgeführt.</p>
+'''
+
+# Stand: App-Korrekturen B1–B4 umgesetzt (axe); Vorlesungsskripte auf web.psi nutzen Embed v2 (kein v1 mehr).
+limits_h = "Nicht barrierefreie Inhalte"
+limits = '''
+<p>Die folgenden Inhalte sind aus den genannten Gründen nicht barrierefrei oder noch nicht vollständig geprüft.</p>
+<h3>Unvereinbarkeit mit der BayDiV</h3>
+<ul>
+<li><strong>Aufklappmenüs der Web-App:</strong> In der Übersicht, der Liste Ihrer Fragen und den Einstellungen liegt in Aufklappmenüs und Auswahllisten ein Bedienelement in einem anderen. Screenreader sagen diese Elemente deshalb doppelt oder uneinheitlich an (WCAG 4.1.2).</li>
+</ul>
+<h3>Noch nicht vollständig geprüft</h3>
+<ul>
+<li><strong>Antwortseiten aus den Mails:</strong> Die Seiten, auf die die Links in den Erinnerungs- und Wochenmails führen, haben wir bisher nicht systematisch geprüft. Dort können Barrieren bestehen, die hier noch nicht aufgeführt sind.</li>
+<li><strong>E-Mails:</strong> Die Mails mit dem Anmeldecode und die Erinnerungsmails haben wir nicht auf Barrierefreiheit geprüft.</li>
+<li><strong>Bedienung mit Screenreader:</strong> Geprüft haben wir bisher überwiegend automatisiert. Eine Prüfung von Hand mit Screenreadern und eine vollständige Prüfung der Tastaturbedienung der Web-App und des Widgets stehen noch aus.</li>
+</ul>
+<h3>Inhalte außerhalb des Anwendungsbereichs</h3>
+<ul>
+<li><strong>Einbettende Webseiten:</strong> Das Widget übernimmt Schrift und Farben der Webseite, in die es eingebettet ist. Ob Texte und Schaltflächen dort genügend Kontrast haben, hängt deshalb auch von dieser Webseite ab. Für sie ist ihr Anbieter verantwortlich.</li>
+<li><strong>Angebote Dritter:</strong> Verlinkte externe Angebote, zum Beispiel die auf der Startseite genannten Texte und Fachartikel, werden von uns weder betrieben noch kontrolliert. Sie sind von dieser Erklärung nicht erfasst.</li>
+</ul>
+'''
+
+made_h = "Erstellung dieser Erklärung"
+made = '''
+<p>Diese Erklärung wurde am {{ date_created }} erstellt und zuletzt am {{ date_reviewed }} überprüft. Grundlage ist eine Selbstbewertung:</p>
+<ul>
+<li>automatisierte Prüfung der Startseite, der Seite für Entwickler und dieser Erklärung (Deutsch und Englisch) mit axe-core auf die Kriterien der WCAG 2.1 (Stufen A und AA), in Desktop- und Mobilansicht</li>
+<li>automatisierte Prüfung der Web-App mit axe-core: Anmeldung, Registrierung, Bestätigung der E-Mail-Adresse, Datenschutzhinweise, Abmeldung von Mails sowie nach der Anmeldung Übersicht, Liste der Fragen und Einstellungen, jeweils im hellen und dunklen Modus; außerdem das Widget auf seiner Demo-Seite</li>
+<li>Prüfung der Darstellung von Startseite, Seite für Entwickler und Erklärung bei 320 Pixel Breite (entspricht 400 % Vergrößerung) ohne horizontales Scrollen</li>
+<li>Prüfung der Tastaturbedienung und der Sichtbarkeit des Fokus auf der Startseite, der Seite für Entwickler und dieser Erklärung</li>
+</ul>
+<p>Die bei der Prüfung gefundenen Mängel wurden vor der Veröffentlichung behoben, soweit sie nicht oben aufgeführt sind. Wir prüfen diese Erklärung mindestens einmal jährlich und aktualisieren sie bei Bedarf (§ 10 BayDiV).</p>
+'''
+
+contact_h = "Barrieren melden: Kontakt"
+contact = '''
+<p>Sind Ihnen Mängel beim barrierefreien Zugang zu psi-pulse aufgefallen, oder benötigen Sie Informationen in einer barrierefreien Form? Dann schreiben Sie uns:</p>
+<p>Lehrstuhl für Privatsphäre und Sicherheit in Informationssystemen<br>
+Universität Bamberg, An der Weberei 5, 96047 Bamberg<br>
+E-Mail: <a href="mailto:office.psi@uni-bamberg.de">office.psi@uni-bamberg.de</a></p>
+<p>Studierende mit Behinderung oder chronischer Erkrankung erreichen außerdem den <a href="https://www.uni-bamberg.de/bafbs/">Beauftragten für Studierende mit Behinderung</a> der Universität Bamberg.</p>
+'''
+
+enforce_h = "Durchsetzungsverfahren"
+enforce = '''
+<p>Bleibt Ihre Mitteilung an uns innerhalb von sechs Wochen ganz oder teilweise unbeantwortet, können Sie bei der Durchsetzungs- und Überwachungsstelle für barrierefreie Informationstechnik beantragen, dass sie den Fall prüft (§ 11 Abs. 2 BayDiV). Der Antrag ist online über die <a href="https://www.ldbv.bayern.de/digitalisierung/bitv/">Informationsseite der Durchsetzungsstelle</a> möglich.</p>
+<p>Landesamt für Digitalisierung, Breitband und Vermessung<br>
+IT-Dienstleistungszentrum des Freistaats Bayern<br>
+Durchsetzungs- und Überwachungsstelle für barrierefreie Informationstechnik<br>
+St.-Martin-Straße 47, 81541 München<br>
+E-Mail: <a href="mailto:bitv@ldbv.bayern.de">bitv@ldbv.bayern.de</a></p>
+'''

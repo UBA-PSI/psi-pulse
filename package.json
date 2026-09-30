@@ -2,28 +2,40 @@
   "name": "Pulse",
   "version": "1.0.0",
   "private": true,
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
-    "preprareIntegrateSrcs": "node preprareIntegrateSrcs.js",
-    "build": "npx prisma generate && npm run preprareIntegrateSrcs && nuxt build ",
-    "start": "nuxt start",
+    "minify-embed": "node minifyEmbed.js",
+    "build": "npx prisma generate && npm run minify-embed && nuxt build ",
+    "start": "node .output/server/index.mjs",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
-    "@prisma/client": "^5.6.0",
-    "nuxt": "^3.8.0",
-    "prisma": "^5.6.0"
+    "nuxt": "4.5.2",
+    "prisma": "7.10.0",
+    "@types/nodemailer": "8.0.2",
+    "uglify-js": "3.19.3",
+    "@iconify-json/heroicons": "1.2.3",
+    "dotenv": "17.4.2"
   },
   "dependencies": {
-   "nuxt-scheduler": "^0.1.9",
-    "@lucia-auth/adapter-prisma": "^3.0.2",
-    "@nuxt/ui": "^2.9.0",
-    "@types/nodemailer": "^6.4.13",
-    "css-minify": "^2.0.0",
-    "lucia": "^2.7.1",
-    "nodemailer": "^6.9.7",
-    "uglify-js": "^3.17.4"
+    "@prisma/client": "7.10.0",
+    "@prisma/adapter-pg": "7.10.0",
+    "@nuxt/ui": "4.11.1",
+    "nodemailer": "10.0.10",
+    "node-cron": "4.6.0"
+  },
+  "engines": {
+    "node": "^24.11.0"
+  },
+  "overrides": {
+    "@prisma/config": {
+      "deepmerge-ts": "^8.0.2"
+    },
+    "mysql2": "^3.24.0",
+    "esbuild": "^0.28.2",
+    "glob": "^13.0.6"
   }
 }

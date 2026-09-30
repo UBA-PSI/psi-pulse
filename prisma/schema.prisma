@@ -1,13 +1,10 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../node_modules/.prisma/client"
-  previewFeatures = ["multiSchema"]
-  binaryTargets   = ["native", "darwin-arm64"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
   schemas  = ["public"]
 }
 
@@ -17,13 +14,15 @@ model User {
   name                                   String
   receive_emails                         Boolean                  @default(true)
   unsubscribe_emails_token               String?                  @unique
-  preferred_reminder_email_delivery_time DateTime
+  // Volle Stunde (0–23) in deutscher Zeit (Europe/Berlin), unabhängig von der Zeitzone des Servers
+  preferred_reminder_hour                Int                      @default(14)
   last_weekly_sent                       DateTime?
   last_reminder_check                    DateTime?
   receive_weekly_emails                  Boolean                  @default(true)
   unsubscribe_weekly_emails_token        String?                  @unique
-  preferred_weekly_email_delivery_time   DateTime
-  preferred_weekly_email_delivery_day    Int
+  preferred_weekly_hour                  Int                      @default(16)
+  // Wochentag wie Date.getDay() (0 = Sonntag), ebenfalls in deutscher Zeit
+  preferred_weekly_email_delivery_day    Int                      @default(3)
   weekly_emails_number                   Int                      @default(6)
   oldest_weekly_sent                     DateTime?
   oldest_reminder_sent                   DateTime?
@@ -35,25 +34,34 @@ model User {
   foreign_sessions                       ThirdPartySession[]
   email_paused_until                     DateTime?
   weekly_email                           WeeklyEmail?
-  question_logs                          QuestionLog[]
+  // Forschung (Einwilligung): Statistik-Einträge tragen nur research_pseudonym, nicht die Konto-Id.
   log_questions                          Boolean                  @default(false)
+  research_pseudonym                     String?                  @unique
+  research_decided_at                    DateTime?
+  research_consent_at                    DateTime?
+  research_consent_version               String?
   verified                               Boolean                  @default(false)
+  created_at                             DateTime                 @default(now())
+  lang                                   String                   @default("de")
   reminder_emails                        ReminderEmail[]
 
   @@schema("public")
 }
 
+// Forschungsdaten: pseudonym (ohne Konto-Id, E-Mail, Name), Löschung nach einem Jahr (backgroundScheduler).
 model QuestionLog {
-  id             String          @id @default(uuid()) @db.Uuid
-  question_id    String          @db.Uuid
-  question       Question        @relation(fields: [question_id], references: [id], onDelete: Cascade)
-  question_state CurrentState
-  question_type  QuestionLogType
-  remembered     Boolean
-  created_at     DateTime        @default(now())
-  user           User?           @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  user_id        String?
+  id              String          @id @default(uuid()) @db.Uuid
+  pseudonym       String
+  question_hash   String
+  page_name       String
+  group_name      String?
+  question_state  CurrentState
+  question_type   QuestionLogType
+  remembered      Boolean
+  consent_version String
+  created_at      DateTime        @default(now())
 
+  @@index([pseudonym])
   @@schema("public")
 }
 
@@ -164,7 +172,6 @@ model Question {
   question_progress_id String           @unique @db.Uuid
   weekly_email         WeeklyEmail?     @relation(fields: [weekly_email_id], references: [id])
   weekly_email_id      String?          @db.Uuid
-  question_log         QuestionLog[]
   reminder_email       ReminderEmail?   @relation(fields: [reminder_email_id], references: [id])
   reminder_email_id    String?          @db.Uuid
 
@@ -223,5 +230,20 @@ model QuestionState {
   final_state_question   QuestionProgress[] @relation("final_state")
 
   @@unique([label, offset])
+  @@schema("public")
+}
+
+// Einmal-Codes für den Login im eingebetteten Widget (Embed v2).
+// Der Code selbst wird nur als SHA-256 gespeichert.
+model LoginCode {
+  id         String   @id @default(uuid()) @db.Uuid
+  email      String
+  code_hash  String
+  lang       String   @default("de")
+  attempts   Int      @default(0)
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@index([email])
   @@schema("public")
 }

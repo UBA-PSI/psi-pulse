@@ -5,28 +5,19 @@
         Sign Up
       </h1>
       <UForm ref="form" :state="state" :validate="validate" class="space-y-4 w-80" @submit="onSubmit">
-        <UFormGroup label="How do want to be called?" name="name">
+        <UFormField label="How do you want to be called?" name="name">
           <UInput v-model="state.name" icon="i-heroicons-user" placeholder="John"/>
-        </UFormGroup>
-        <UFormGroup label="Email" name="email">
+        </UFormField>
+        <UFormField label="Email" name="email">
           <UInput v-model="state.email" icon="i-heroicons-envelope" placeholder="you@example.com"/>
-        </UFormGroup>
-        <div class="flex items-center justify-between sm:col-span-6 just">
-                  <span class="flex flex-grow flex-col text-left">
-                    <span class="block font-medium text-gray-700 dark:text-gray-200 text-sm">Statistics</span>
-                    <span
-                        class="text-sm text-gray-500">Collect usage data to enable more comprehensive analysis. <nuxt-link
-                        class="text-sm text-primary" to="/privacy-policy">Learn more</nuxt-link></span>
-                  </span>
-          <UToggle v-model="state.logQuestions"/>
-        </div>
+        </UFormField>
         <UButton :loading="loading" block type="submit">
           Sign Up
         </UButton>
       </UForm>
       <div class="mt-10">
-        Already a member?
-        <NuxtLink class="text-primary" to="/login">Log in</NuxtLink>
+        Already have an account?
+        <NuxtLink class="text-primary underline" to="/login">Log in</NuxtLink>
       </div>
     </CustomCard>
   </div>
@@ -34,42 +25,32 @@
 
 <script lang="ts" setup>
 import {FetchError} from "ofetch";
-import type {FormError, FormSubmitEvent} from "#ui/types";
+import type {FormError, FormSubmitEvent} from "@nuxt/ui";
 
 useHead({
   title: 'Signup'
 })
 
+// Angemeldet gibt es hier nichts zu tun: gleich zum Dashboard (die globale Middleware hat den Nutzer schon geladen).
 definePageMeta({
   layout: "not-authenticated",
-});
-
-const user = useUser();
-onMounted(async () => {
-  if (user.value) {
-    const token = await $fetch('/api/v1/foreignSession')
-    const url = (window.location != window.parent.location)
-        ? document.referrer
-        : document.location.href;
-    window.parent.postMessage(token, url);
-    await navigateTo("/");
-  }
+  middleware: () => {
+    if (useUser().value) return navigateTo("/home", {replace: true});
+  },
 });
 
 const validate = (state: any): FormError[] => {
   const errors = []
-  if (!state.email) errors.push({path: 'email', message: 'Required'})
-  if (!state.name) errors.push({path: 'name', message: 'Required'})
+  if (!state.email) errors.push({name: 'email', message: 'Required'})
+  if (!state.name) errors.push({name: 'name', message: 'Required'})
   return errors
 }
 const state = reactive({
   email: undefined,
   name: undefined,
-  logQuestions: false
 })
 const loading = ref(false)
 const form = ref()
-
 
 async function onSubmit(event: FormSubmitEvent<any>) {
   loading.value = true
@@ -78,15 +59,14 @@ async function onSubmit(event: FormSubmitEvent<any>) {
       method: "POST",
       body: {
         name: event.data.name,
-        email: event.data.email,
-        logQuestions: event.data.logQuestions
+        email: event.data.email
       },
       redirect: "manual"
     });
     await navigateTo("/email-verification");
   } catch (e) {
     const err = e as FetchError;
-    form.value?.setErrors([{"path": "email", "message": err.response._data.message}])
+    form.value?.setErrors([{"name": "email", "message": err.response._data.message}])
   }
   loading.value = false
 }

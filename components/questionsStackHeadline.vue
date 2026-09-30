@@ -1,18 +1,12 @@
 <template>
-  <div class="mx-auto max-w-xl px-4 pt-24 sm:px-6 lg:px-8 flex justify-between items-center">
-    <div class="flex">
+  <div class="mx-auto max-w-xl px-4 pt-24 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center">
       <h1 class="text-base font-semibold leading-7 dark:text-white">{{ title }}</h1>
-      <UPopover v-if="explanation != null" :ui="{wrapper: 'flex items-center'}" mode="hover">
-        <UIcon class="ml-4" name="i-heroicons-information-circle"/>
-        <template #panel>
-          <div class="p-4 max-w-sm">
-            {{ explanation }}
-          </div>
-        </template>
-      </UPopover>
+      <span v-if="questions && questions.length > 0 && questions.length >= offset + 1"
+            class="text-sm text-gray-500 dark:text-gray-400">{{ t.position(offset + 1, questions.length) }}</span>
     </div>
-    <span v-if="questions && questions.length > 0 && questions.length >= offset + 1"
-          class="text-sm text-gray-500 dark:text-gray-400">{{ offset + 1 }} / {{ questions.length }}</span>
+    <!-- Sichtbar statt Tooltip: per Tastatur und Touch erreichbar (WCAG 2.1.1, 1.4.13) -->
+    <p v-if="explanation != null" class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ explanation }}</p>
   </div>
 </template>
 
@@ -23,4 +17,5 @@ const props = defineProps<{
   offset: number
   explanation?: string
 }>()
+const t = useUiText()
 </script>

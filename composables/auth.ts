@@ -1,4 +1,4 @@
-import type {User} from "lucia";
+import type {SessionUser as User} from "~/types/session";
 
 export const useUser = () => {
     return useState<User | null>("user", () => null);

@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+{{> _head.html }}
+<meta name="pulse:page" content="{{ demo_page }}">
+<meta name="pulse:url" content="https://pulse.psi.uni-bamberg.de{{ self_path }}">
+<script src="/embed/v2/pulse.min.js" defer></script>
+</head>
+<body>
+{{> _nav.html }}
+
+<main id="main">
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-text">
+      <p class="kicker kicker--light">{{ hero_kicker }}</p>
+      <h1>{{ hero_title }}</h1>
+      <p class="hero-lead">{{ hero_lead }}</p>
+      <div class="hero-actions">
+        <a class="btn btn--light" href="/login">{{ login }}</a>
+        <a class="btn btn--ghost" href="#so-gehts">{{ hero_cta_how }}</a>
+      </div>
+      <p class="hero-note">{{ hero_note }}</p>
+    </div>
+    <figure class="chart-card">
+      <svg viewBox="-26 0 526 250" role="img" aria-labelledby="chart-title chart-desc">
+        <title id="chart-title">{{ chart_title }}</title>
+        <desc id="chart-desc">{{ chart_desc }}</desc>
+        <g class="chart-grid">
+          <line x1="44" y1="24" x2="468" y2="24"/><line x1="44" y1="110" x2="468" y2="110"/>
+          <line x1="44" y1="196" x2="468" y2="196"/>
+        </g>
+        <g class="chart-axis" aria-hidden="true">
+          <text x="36" y="28" text-anchor="end">100&#8239;%</text>
+          <text x="36" y="114" text-anchor="end">50&#8239;%</text>
+          <text x="36" y="200" text-anchor="end">0</text>
+          <text x="44" y="218" text-anchor="middle">0</text>
+          <text x="142.9" y="218" text-anchor="middle">7</text>
+          <text x="241.9" y="218" text-anchor="middle">14</text>
+          <text x="340.8" y="218" text-anchor="middle">21</text>
+          <text x="439.7" y="218" text-anchor="middle">28</text>
+          <text x="468" y="240" text-anchor="end">{{ chart_x }}</text>
+        </g>
+        <path class="chart-forget" d="{{ chart_forget }}"/>
+        <path class="chart-review" d="{{ chart_review }}"/>
+        <g class="chart-dots">{{ chart_dots }}</g>
+      </svg>
+      <figcaption>
+        <span class="legend legend--review">{{ chart_leg_review }}</span>
+        <span class="legend legend--forget">{{ chart_leg_forget }}</span>
+        <span class="chart-note">{{ chart_note }}</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section" id="problem" aria-labelledby="problem-h">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker">{{ problem_kicker }}</p>
+      <h2 id="problem-h">{{ problem_title }}</h2>
+      <p class="lede">{{ problem_lead }}</p>
+    </header>
+    <div class="cols cols--3">
+      <div class="col"><h3>{{ problem_1_h }}</h3><p>{{ problem_1_p }}</p></div>
+      <div class="col"><h3>{{ problem_2_h }}</h3><p>{{ problem_2_p }}</p></div>
+      <div class="col"><h3>{{ problem_3_h }}</h3><p>{{ problem_3_p }}</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="idee" aria-labelledby="idee-h">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker">{{ idea_kicker }}</p>
+      <h2 id="idee-h">{{ idea_title }}</h2>
+      <p class="lede">{{ idea_lead }}</p>
+    </header>
+    <div class="band">
+      <div class="words">
+        <ul class="checks">
+          <li><strong>{{ idea_1_h }}</strong> {{ idea_1_p }}</li>
+          <li><strong>{{ idea_2_h }}</strong> {{ idea_2_p }}</li>
+          <li><strong>{{ idea_3_h }}</strong> {{ idea_3_p }}</li>
+        </ul>
+        <p>{{ idea_pulse }}</p>
+      </div>
+      <figure class="quote">
+        <blockquote lang="en"><p>“{{ idea_quote }}”</p></blockquote>
+        {{ idea_quote_translation }}
+        <figcaption>{{ idea_quote_source }}</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="so-gehts" aria-labelledby="so-gehts-h">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker">{{ how_kicker }}</p>
+      <h2 id="so-gehts-h">{{ how_title }}</h2>
+    </header>
+    <ol class="cols cols--3 steps">
+      <li class="col"><h3>{{ how_1_h }}</h3><p>{{ how_1_p }}</p></li>
+      <li class="col"><h3>{{ how_2_h }}</h3><p>{{ how_2_p }}</p></li>
+      <li class="col"><h3>{{ how_3_h }}</h3><p>{{ how_3_p }}</p></li>
+    </ol>
+    <p class="note">{{ how_fineprint }}</p>
+  </div>
+</section>
+
+<section class="section section--band" id="ausprobieren" aria-labelledby="ausprobieren-h">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker">{{ try_kicker }}</p>
+      <h2 id="ausprobieren-h">{{ try_title }}</h2>
+      <p class="lede">{{ try_lead }}</p>
+    </header>
+    <div class="band">
+      <div class="words">
+        <p>{{ try_note }}</p>
+      </div>
+      <div class="stage">
+        <div class="demo">
+          <pulse-deck group="{{ demo_group }}">
+            <pulse-question key="landing-abstaende">
+              <p>{{ demo_q1 }}</p>
+              <details><summary>{{ demo_answer }}</summary><p>{{ demo_a1 }}</p></details>
+            </pulse-question>
+            <pulse-question key="landing-testeffekt">
+              <p>{{ demo_q2 }}</p>
+              <details><summary>{{ demo_answer }}</summary><p>{{ demo_a2 }}</p></details>
+            </pulse-question>
+            <pulse-question key="landing-mnemonic-medium">
+              <p>{{ demo_q3 }}</p>
+              <details><summary>{{ demo_answer }}</summary><p>{{ demo_a3 }}</p></details>
+            </pulse-question>
+          </pulse-deck>
+          <pulse-summary compact></pulse-summary>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="datenschutz" aria-labelledby="datenschutz-h">
+  <div class="wrap band band--top">
+    <div class="words">
+    <header class="head">
+        <p class="kicker">{{ privacy_kicker }}</p>
+        <h2 id="datenschutz-h">{{ privacy_title }}</h2>
+        <p class="lede">{{ privacy_lead }}</p>
+      </header>
+      <p><a class="more" href="/privacy-policy">{{ privacy_link }}</a></p>
+    </div>
+    <div class="tiles">
+      <div class="tile"><h3>{{ privacy_1_h }}</h3><p>{{ privacy_1_p }}</p></div>
+      <div class="tile"><h3>{{ privacy_2_h }}</h3><p>{{ privacy_2_p }}</p></div>
+      <div class="tile"><h3>{{ privacy_3_h }}</h3><p>{{ privacy_3_p }}</p></div>
+      <div class="tile"><h3>{{ privacy_4_h }}</h3><p>{{ privacy_4_p }}</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="fragen" aria-labelledby="fragen-h">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker">{{ faq_kicker }}</p>
+      <h2 id="fragen-h">{{ faq_title }}</h2>
+    </header>
+    <div class="faq">
+      <details><summary>{{ faq_1_q }}</summary>{{ faq_1_a }}</details>
+      <details><summary>{{ faq_2_q }}</summary>{{ faq_2_a }}</details>
+      <details><summary>{{ faq_3_q }}</summary>{{ faq_3_a }}</details>
+      <details><summary>{{ faq_4_q }}</summary>{{ faq_4_a }}</details>
+      <details><summary>{{ faq_5_q }}</summary>{{ faq_5_a }}</details>
+      <details><summary>{{ faq_6_q }}</summary>{{ faq_6_a }}</details>
+    </div>
+    <p class="note">{{ faq_more }}</p>
+  </div>
+</section>
+
+<section class="section section--dark" id="lehrende" aria-labelledby="lehrende-h">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker">{{ teach_kicker }}</p>
+      <h2 id="lehrende-h">{{ teach_title }}</h2>
+      <p class="lede">{{ teach_lead }}</p>
+    </header>
+    <div class="band band--code">
+      <div class="words">
+        <p>{{ teach_p }}</p>
+        <p>{{ teach_contact }}</p>
+        <p><a class="more" href="{{ dev_path }}">{{ teach_dev_link }}</a></p>
+      </div>
+      <pre class="code" role="region" tabindex="0" aria-label="{{ teach_code_label }}"><code>{{ teach_code }}</code></pre>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="hintergrund" aria-labelledby="hintergrund-h">
+  <div class="wrap">
+    <header class="head">
+      <p class="kicker">{{ bg_kicker }}</p>
+      <h2 id="hintergrund-h">{{ bg_title }}</h2>
+      <p class="lede">{{ bg_lead }}</p>
+    </header>
+    <h3 class="group">{{ bg_idea_h }}</h3>
+    <ul class="refcards refcards--3">
+      <li class="ref"><p class="ref-by">Andy Matuschak, Michael Nielsen · 2019</p><p class="ref-title"><a href="https://numinous.productions/ttft/"><cite lang="en">How can we develop transformative tools for thought?</cite></a></p><p>{{ ref_ttft }}</p></li>
+      <li class="ref"><p class="ref-by">Andy Matuschak, Michael Nielsen · 2019</p><p class="ref-title"><a href="https://quantum.country/"><cite lang="en">Quantum Country</cite></a></p><p>{{ bg_qc }}</p></li>
+      <li class="ref"><p class="ref-by">Andy Matuschak, Michael Nielsen · 2020</p><p class="ref-title"><a href="https://numinous.productions/timeful/"><cite lang="en">Timeful Texts</cite></a></p><p>{{ ref_timeful }}</p></li>
+      <li class="ref"><p class="ref-by">Andy Matuschak · 2019</p><p class="ref-title"><a href="https://andymatuschak.org/books/"><cite lang="en">Why books don’t work</cite></a></p><p>{{ ref_books }}</p></li>
+      <li class="ref"><p class="ref-by">Andy Matuschak · {{ bg_notes }}</p><p class="ref-title"><a href="https://notes.andymatuschak.org/zKPv6qkSErdRGqyryvgS2wS"><cite lang="en">Mnemonic medium</cite></a></p><p>{{ ref_note }}</p></li>
+      <li class="ref"><p class="ref-by">Andy Matuschak · <a href="https://notes.andymatuschak.org/zDRdgSZguFsSj49gtbf1dJg">{{ bg_notes }}</a></p><p class="ref-title"><a href="https://withorbit.com/">Orbit</a></p><p>{{ bg_orbit }}</p></li>
+    </ul>
+    <h3 class="group">{{ bg_research_h }}</h3>
+    <ul class="refcards refcards--2">
+      <li class="ref"><p class="ref-by">Hermann Ebbinghaus · 1885; Jaap Murre, Joeri Dros · 2015</p><p class="ref-title"><a href="https://doi.org/10.1371/journal.pone.0120644"><cite lang="en">Replication and analysis of Ebbinghaus’ forgetting curve</cite></a></p><p>{{ bg_ebbinghaus }}</p></li>
+      <li class="ref"><p class="ref-by">Henry L. Roediger, Jeffrey D. Karpicke · 2006</p><p class="ref-title"><a href="https://doi.org/10.1111/j.1467-9280.2006.01693.x"><cite lang="en">Test-enhanced learning</cite></a></p><p>{{ bg_roediger }}</p></li>
+      <li class="ref"><p class="ref-by">Nicholas J. Cepeda u.&#8239;a. · 2006, 2008</p><p class="ref-title"><a href="https://doi.org/10.1037/0033-2909.132.3.354"><cite lang="en">Distributed practice in verbal recall tasks</cite></a>; <a href="https://doi.org/10.1111/j.1467-9280.2008.02209.x"><cite lang="en">Spacing effects in learning</cite></a></p><p>{{ bg_cepeda }}</p></li>
+      <li class="ref"><p class="ref-by">John Dunlosky u.&#8239;a. · 2013</p><p class="ref-title"><a href="https://doi.org/10.1177/1529100612453266"><cite lang="en">Improving students’ learning with effective learning techniques</cite></a></p><p>{{ bg_dunlosky }}</p></li>
+    </ul>
+    <p class="note">{{ bg_origin }}</p>
+  </div>
+</section>
+
+<section class="cta-band" aria-labelledby="cta-h">
+  <div class="wrap cta-inner">
+    <h2 id="cta-h">{{ cta_title }}</h2>
+    <div class="hero-actions">
+      <a class="btn btn--light" href="/login">{{ login }}</a>
+      <a class="btn btn--ghost" href="/signup">{{ cta_signup }}</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+{{> _footer.html }}
+</body>
+</html>

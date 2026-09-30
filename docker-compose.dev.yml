@@ -1,0 +1,23 @@
+# Lokale Entwicklung/Tests mit leerer DB und Mailcatcher:
+#   cp .env.example .env
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools build
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm migrate
+# App: http://localhost:3000   Mails: http://localhost:8025
+# Tests Block 2: scripts/e2e-privacy.sh
+services:
+  pulse-app:
+    ports: !override
+      - "127.0.0.1:3000:3000"
+    restart: "no"
+    environment:
+      PULSE_CLEANUP_INTERVAL_MS: 1000  # bei jedem Scheduler-Tick (jede Minute) aufräumen, damit Tests nicht eine Stunde warten
+  postgres:
+    restart: "no"
+  mailpit:
+    image: axllent/mailpit:v1.31.2
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    ports:
+      - "127.0.0.1:8025:8025"

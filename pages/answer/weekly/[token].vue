@@ -1,5 +1,5 @@
 <template>
-  <QuestionsStackHeadline :offset="questionOffset" :questions="flatQuestions" title="Remaining Questions"/>
+  <QuestionsStackHeadline :offset="questionOffset" :questions="flatQuestions" :title="t.weeklyHeading"/>
   <div v-if="flatQuestions">
     <div v-if="questionOffset < flatQuestions.length">
       <Question :getUpdateUrl="getUpdateUrl"
@@ -8,84 +8,50 @@
       />
     </div>
     <div v-else>
-      <AllAnswered/>
-      <div v-if="streakHold != null">
-        <div v-if="streakHold > 0">
-          <div class="mx-auto max-w-xl px-4 sm:px-6 lg:px-8">
-            <div class="rounded-md bg-green-50 p-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <UIcon aria-hidden="true" class="h-5 w-5 text-green-400" name="i-heroicons-check-circle"/>
-                </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-green-800">
-                    Congrats! You answered your weekly question in time. Your weekly streak is now {{ streakHold }}.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-else>
-          <div class="mx-auto max-w-xl px-4  sm:px-6 lg:px-8">
-            <div class="rounded-md bg-yellow-50 p-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <UIcon aria-hidden="true" class="h-5 w-5 text-yellow-400" name="i-heroicons-exclamation-triangle"/>
-                </div>
-                <div class="ml-3">
-                  <p class="text-sm font-medium text-yellow-800">
-                    Oh no! You didn't answer your weekly question in time
-                    and lost your {{ streakHold }} streak. Hurry up and answer your next weekly question in time to get
-                    it back!
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AllAnswered v-if="streak != null" :message="t.weeklyDone(streak)"/>
+      <AllAnswered v-else-if="completeFailed"/>
       <LoadingPlaceholder v-else/>
     </div>
   </div>
 
   <LoadingPlaceholder v-else-if="!errorMessage"/>
   <ExternalErrorAlert v-if="errorMessage" :errorMessage="errorMessage"/>
+  <ResearchInvite kind="weekly" :token="String(route.params.token)"
+                  :visible="!!flatQuestions && questionOffset >= flatQuestions.length"/>
 </template>
 <script lang="ts" setup>
 import {onMounted} from "@vue/runtime-core";
 import type {InternalQuestion} from "~/types/questions/internal";
-import {FetchError} from "ofetch";
 import QuestionsStackHeadline from "~/components/questionsStackHeadline.vue";
-
-useHead({
-  title: 'Answer Weekly'
-})
 
 definePageMeta({
   layout: "not-authenticated",
 });
 
 const route = useRoute();
+const t = useUiText()
+useHead({title: computed(() => t.value.weeklyTitle)})
+// Sprache des Kontos über das Token aus der Mail, sonst ?lang= bzw. Accept-Language
+await useAnswerPageLang({kind: "weekly", token: String(route.params.token ?? "")})
+
 let errorMessage = ref<string | null>(null);
 const flatQuestions = ref<InternalQuestion[] | null>(null)
 const questionOffset = ref(0)
-const streakHold = ref<number | null>(null)
+// Wochenserie nach dem Abschließen (weekly/[token].put.ts zählt sie hoch; sachlich melden, ohne Druck)
+const streak = ref<number | null>(null)
+const completeFailed = ref(false)
 
 onMounted(async () => {
   if (!route.params.token) {
-    errorMessage.value = "No token provided";
+    errorMessage.value = t.value.linkInvalid;
     return;
   }
   try {
     flatQuestions.value = await $fetch(`/api/weekly/${route.params.token}`)
+    // Alle Fragen inzwischen archiviert: nichts zu beantworten, sonst bliebe die Seite beim Laden stehen
+    if (flatQuestions.value && flatQuestions.value.length === 0) await weeklyCompleted()
   } catch (e) {
-    const err = e as FetchError;
-    if (err.response == undefined) {
-      errorMessage.value = "Unknown error"
-      return
-    }
-    errorMessage.value = err.response._data.message
+    errorMessage.value = answerErrorText(e, t.value)
   }
 })
 
@@ -102,8 +68,12 @@ const getUpdateUrl = (questionId: string) => {
 }
 
 const weeklyCompleted = async () => {
-  streakHold.value = await $fetch(`/api/weekly/${route.params.token}`, {
-    method: "put",
-  })
+  try {
+    streak.value = await $fetch<number>(`/api/weekly/${route.params.token}`, {
+      method: "put",
+    })
+  } catch {
+    completeFailed.value = true
+  }
 }
 </script>

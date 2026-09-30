@@ -1,6 +1,7 @@
 export default defineNuxtRouteMiddleware(async () => {
-    const user = useUser();
-    const { data, error } = await useFetch("/api/user");
-    if (error.value) throw createError("Failed to fetch data");
-    user.value = data.value?.user ?? null;
+    // Nuxt 4 reuses useFetch payloads across navigation. Authentication must be fresh,
+    // especially after logout/account deletion, or /login redirects back to /home.
+    const requestFetch = useRequestFetch();
+    const data = await requestFetch('/api/user');
+    useUser().value = data.user ?? null;
 });

@@ -1,7 +1,8 @@
+import {usePrisma} from "~/server/utils/prisma";
 import {H3Event} from "h3";
 import {PrismaClient} from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = usePrisma();
 
 export default async (event: H3Event) => {
     let authToken = event.headers.get('X-API-KEY')
@@ -11,10 +12,12 @@ export default async (event: H3Event) => {
             where: {
                 id: authToken
             }, select: {
-                user_id: true
+                user_id: true,
+                expires: true,
             }
         })
-        userId = foreignSession ? foreignSession.user_id : null
+        // Abgelaufene Tokens sofort ablehnen, nicht erst nach dem stündlichen Aufräumen (A25)
+        userId = foreignSession && Number(foreignSession.expires) > Date.now() ? foreignSession.user_id : null
     }
 
     if (!userId) {

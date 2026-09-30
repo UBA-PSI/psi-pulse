@@ -1,8 +1,10 @@
+import {usePrisma} from "~/server/utils/prisma";
+import {safePageUrl} from "~/server/utils/pageUrl";
 import {PrismaClient} from "@prisma/client";
 import {InternalQuestion} from "~/types/questions/internal";
 import {getQuestionStates, questionActiveStateGenerator} from "~/server/utils/editQuestion";
 
-const prisma = new PrismaClient();
+const prisma = usePrisma();
 
 export default defineEventHandler(async (event): Promise<InternalQuestion[]> => {
     if (!event.context.params) {
@@ -86,7 +88,7 @@ export default defineEventHandler(async (event): Promise<InternalQuestion[]> => 
             currentState: question.question_progress.current_state,
             isOpen: questionCanBeAnswered(question),
             pageName: question.page.name,
-            pageUrl: question.page.url,
+            pageUrl: safePageUrl(question.page.url),
             groupName: question.group.name,
             states: getQuestionStates(question.question_progress),
             waitingForRemembered: question.question_progress.waiting_for_remembered,

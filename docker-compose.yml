@@ -1,24 +1,48 @@
+# Produktivbetrieb. Werte kommen aus .env (siehe .env.example).
+# Bauen (der migrate-Dienst liegt im Profil "tools" und wird sonst übersprungen):
+#   docker compose --profile tools build
+# Erstinstallation bzw. nach Code-Updates mit neuen Migrationen:
+#   docker compose run --rm migrate
 services:
   pulse-app:
     build:
       context: .
+      target: runtime
+    image: pulse-app:${PULSE_TAG:-latest}
     container_name: web
     restart: always
     ports:
-      - "8080:3000"
+      # nur IPv4: die Firewall (DOCKER-USER) greift nicht für link-lokales IPv6 über docker-proxy
+      - "0.0.0.0:8080:3000"
     environment:
       DATABASE_URL: postgres://postgres:${DB_PASSWORD}@postgres:5432/postgres
-      EMAIL_HOST: ${EMAIL_HOST}
-      EMAIL_USER: ${EMAIL_USER}
-      EMAIL_PASS: ${EMAIL_PASS}
-      HOST_URL: ${HOST_URL}
-      DB_PASSWORD: ${DB_PASSWORD}
-    command: /src/wait-for-it.sh postgres 5432 "node .output/server/index.mjs"
-    links:
-      - postgres
+      NUXT_MAIL_SECRETS_EMAIL_HOST: ${EMAIL_HOST}
+      NUXT_MAIL_SECRETS_EMAIL_PORT: ${EMAIL_PORT:-587}
+      NUXT_MAIL_SECRETS_EMAIL_REQUIRE_TLS: ${EMAIL_REQUIRE_TLS:-true}
+      NUXT_MAIL_SECRETS_EMAIL_USER: ${EMAIL_USER}
+      NUXT_MAIL_SECRETS_EMAIL_PASS: ${EMAIL_PASS}
+      NUXT_MAIL_SECRETS_HOST_URL: ${HOST_URL}
+      NUXT_PUBLIC_HOST_URL: ${HOST_URL}
+      NUXT_LOGIN_CODE_SECRET: ${LOGIN_CODE_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  migrate:
+    build:
+      context: .
+      target: migrate
+    image: pulse-migrate:${PULSE_TAG:-latest}
+    profiles: ["tools"]
+    environment:
+      DATABASE_URL: postgres://postgres:${DB_PASSWORD}@postgres:5432/postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   postgres:
-    image: postgres:latest
+    # Debian-Basis fest: ein Wechsel (neue glibc) verlangt REINDEX, siehe Ops-Runbook 02, Schritt 3b.
+    image: postgres:16-trixie
     container_name: database
     restart: always
     environment:
@@ -27,6 +51,14 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pulse_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
 volumes:
   pulse_data:
+    # Fester Name: das Produktiv-Volume heißt so, seit Compose im Verzeichnis /root/web lief.
+    # Ohne diese Zeile hinge der Name am Verzeichnis, und ein Umzug ergäbe eine leere DB.
+    name: web_pulse_data

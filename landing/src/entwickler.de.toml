@@ -1,0 +1,231 @@
+# Seite für Lehrende und Entwickler (/entwickler/). Schlüssel müssen mit entwickler.en.toml übereinstimmen.
+# Quelle für Einbinden, Markup, Einstellungen und Aussehen: docs/embed-v2.md (gekürzt, ohne Interna der Wartung).
+# Der Abschnitt „Lernlogik“ ist aus dem Code belegt (emailScheduler.ts, backgroundScheduler.ts, editQuestion.ts,
+# questionCanBeAnswered.ts, api/v1/questions/index.post.ts, token.ts); bei Änderungen dort hier nachziehen.
+# Werte sind HTML; {{ schluessel }} setzt einen anderen Schlüssel ein, {{ code_<name> }} ein Codebeispiel
+# (code.<name> am Ende der Datei, beim Build hervorgehoben).
+
+title = "psi-pulse für Entwickler · Fragen in eigene Seiten einbauen · Lehrstuhl PSI, Universität Bamberg"
+description = "Wie Sie psi-pulse-Fragen in eigene Webseiten einbauen, anpassen und datenschutzgerecht betreiben, und nach welchen Regeln psi-pulse Fragen per E-Mail wiederholt."
+heading = "psi-pulse in eigene Seiten einbauen"
+
+intro = '''
+<p class="doc-lead">Diese Seite richtet sich an Lehrende, die Wiederholungsfragen in ihre eigenen Webseiten einbauen möchten, und an alle, die das technisch umsetzen. Sie brauchen dafür eine Zeile JavaScript und etwas HTML, aber keinen eigenen Server und kein Konto bei psi-pulse.</p>
+<p>psi-pulse steht auch Lehrenden anderer Hochschulen offen. Wir betreiben den Dienst nach bestem Bemühen, ohne Zusage zu Verfügbarkeit oder Support. Ob Sie ihn in Ihrer Lehre einsetzen dürfen, klären Sie bitte mit dem Datenschutz Ihrer Hochschule. Wie das Ergebnis aussieht, zeigt die <a href="/embed/v2/demo.html">Demo-Seite</a>, auch in mehreren Gestaltungen.</p>
+'''
+toc_h = "Inhalt"
+
+embed_h = "Einbinden"
+embed = '''
+<p>Eine Frage besteht aus gewöhnlichem HTML, das Skript von psi-pulse macht daraus einen Selbsttest: Frage, Knopf „Antwort zeigen“, danach „Gewusst“ oder „Nicht gewusst“. Ohne JavaScript bleibt die Antwort aufklappbar; beim Drucken erscheinen Frage und Antwort.</p>
+{{ code_first }}
+<p>Das Skript lässt sich auf drei Arten einbinden; die Fragen verhalten sich jedes Mal gleich:</p>
+{{ code_load }}
+<ol>
+<li><strong>Vom Server von psi-pulse laden:</strong> am einfachsten, Verbesserungen kommen automatisch an. Dafür lädt jeder Aufruf Ihrer Seite das Skript von pulse.psi.uni-bamberg.de.</li>
+<li><strong>Datei selbst ausliefern:</strong> Sie legen <code>pulse.min.js</code> zu Ihren Dateien und nennen mit <code>data-host</code> den Server von psi-pulse. So bestimmen Sie selbst, wann Sie eine neue Fassung übernehmen.</li>
+<li><strong>Direkt in die Seite schreiben:</strong> für eigenständige HTML-Dateien, etwa ein Skript zum Herunterladen. Das funktioniert auch, wenn die Datei lokal geöffnet wird.</li>
+</ol>
+<p>Das Skript darf im <code>&lt;head&gt;</code> oder am Ende der Seite stehen. Die Dateien liegen unter <a href="/embed/v2/pulse.min.js">/embed/v2/pulse.min.js</a> und, lesbar kommentiert, unter <a href="/embed/v2/pulse.js">/embed/v2/pulse.js</a>.</p>
+'''
+
+markup_h = "Fragen schreiben"
+markup = '''
+<p>Alles in <code>&lt;pulse-question&gt;</code> außer dem <code>&lt;details&gt;</code>-Block ist die Frage; der Inhalt von <code>&lt;details&gt;</code> ohne <code>&lt;summary&gt;</code> ist die Antwort. Beide dürfen beliebiges HTML enthalten, auch Code, Formeln oder Bilder. Für die Erinnerungsmails verwendet psi-pulse nur den reinen Text.</p>
+<dl>
+<dt><code>key</code></dt>
+<dd>Ein fester Name der Frage, eindeutig auf der Seite. Wir empfehlen ihn: Mit <code>key</code> bleibt der Lernstand der Studierenden erhalten, wenn Sie den Fragetext später korrigieren; psi-pulse übernimmt dann den neuen Text. Ohne <code>key</code> erkennt psi-pulse die Frage an ihrem Text, und eine geänderte Frage gilt als neue Frage.</dd>
+<dt><code>&lt;pulse-deck&gt;</code></dt>
+<dd>Ein Stapel: zeigt mehrere Fragen nacheinander („Frage 1 von 3“). Beim Laden rücken neue Fragen und solche, die wieder dran sind, nach vorn.</dd>
+<dt><code>group</code></dt>
+<dd>Optionaler Gruppenname, etwa ein Kapitel. Er ordnet die Fragen in der Web-App und in den Mails. Er steht an <code>&lt;pulse-deck&gt;</code> oder an einer einzelnen Frage.</dd>
+<dt><code>&lt;pulse-summary&gt;</code></dt>
+<dd>Optional: Stand der Fragen auf dieser Seite, kurze Erklärung und Anmeldung. Mit dem Attribut <code>compact</code> wird daraus eine Zeile, die sich aufklappen lässt.</dd>
+</dl>
+{{ code_deck }}
+<p>Seiten, die noch für die erste Version von psi-pulse geschrieben sind, funktionieren weiter: <code>&lt;pulse-question question="…" answer="…"&gt;</code>, <code>&lt;pulse-page name="…"&gt;</code> und der Stapel <code>&lt;pulse-stack&gt;</code> werden verstanden, und der Lernstand bleibt erhalten. Sie müssen nur das Skript austauschen. Eigene CSS-Regeln für <code>pulse-deck</code> sollten dann auch <code>pulse-stack</code> nennen.</p>
+'''
+
+config_h = "Einstellungen"
+config = '''
+<p>Einstellungen stehen als Attribute am Skript. Alle sind optional.</p>
+<dl>
+<dt><code>data-page</code></dt>
+<dd>Name der Seite, etwa „Vorlesung 3: Kryptographie“. Studierende sehen ihn in der Web-App und in den Mails; die Fragen einer Seite gehören zusammen. Halten Sie den Namen stabil, denn der Lernstand hängt an ihm. Ohne Angabe nimmt psi-pulse <code>&lt;meta name="pulse:page"&gt;</code> und sonst den Titel der Seite.</dd>
+<dt><code>data-url</code></dt>
+<dd>Adresse, unter der die Seite öffentlich erreichbar ist; die Web-App verlinkt dorthin zurück. Ohne Angabe nimmt psi-pulse <code>&lt;meta name="pulse:url"&gt;</code>, dann <code>&lt;link rel="canonical"&gt;</code>, dann die Adresse im Browser. Bei lokal geöffneten Dateien sendet psi-pulse keine Adresse, also nie einen Pfad auf Ihrem Rechner.</dd>
+<dt><code>data-print</code></dt>
+<dd>Was beim Drucken erscheint: <code>answers</code> (Frage und Antwort, Vorgabe), <code>questions</code> (nur Fragen) oder <code>hide</code> (keine Fragen).</dd>
+<dt><code>data-host</code></dt>
+<dd>Adresse des psi-pulse-Servers. Nur nötig, wenn Sie das Skript selbst ausliefern oder in die Seite schreiben.</dd>
+<dt><code>data-style</code></dt>
+<dd>Mit <code>none</code> fügt psi-pulse kein eigenes CSS ein; Sie gestalten alles selbst.</dd>
+</dl>
+'''
+
+style_h = "Aussehen anpassen"
+style = '''
+<p>Die Fragen übernehmen Schrift, Farben und Überschriften Ihrer Seite. Das eigene CSS von psi-pulse ist absichtlich schwach: Jede Regel Ihrer Seite gewinnt, ohne <code>!important</code>. Das gilt auch für allgemeine Regeln wie <code>button { … }</code>, die dann auch die Knöpfe der Fragen verändern.</p>
+<p>Farben und Formen stellen Sie über CSS-Variablen ein, am Element selbst oder an einem umgebenden Element:</p>
+<dl>
+<dt><code>--pulse-accent</code></dt><dd>Knöpfe, Beschriftung, Links, Fokusrahmen (Vorgabe: Textfarbe)</dd>
+<dt><code>--pulse-on-accent</code></dt><dd>Schrift auf gefüllten Knöpfen</dd>
+<dt><code>--pulse-rule</code></dt><dd>Rahmen und Trennlinie vor der Antwort</dd>
+<dt><code>--pulse-bg</code></dt><dd>Hintergrund des Kastens (Vorgabe: durchsichtig)</dd>
+<dt><code>--pulse-radius</code></dt><dd>Rundung von Kasten, Knöpfen und Feldern</dd>
+<dt><code>--pulse-ui-font</code>, <code>--pulse-ui-size</code></dt><dd>Schrift und Größe von Knöpfen und Hinweisen</dd>
+<dt><code>--pulse-muted</code></dt><dd>Farbe von Hinweisen</dd>
+<dt><code>--pulse-space</code></dt><dd>Innen- und Außenabstand des Kastens</dd>
+<dt><code>--pulse-error</code></dt><dd>Fehlermeldungen bei der Anmeldung</dd>
+</dl>
+{{ code_vars }}
+<p><strong>Seiten mit globalem Reset.</strong> Setzt Ihre Seite alle Abstände zurück, etwa mit <code>* { margin: 0; padding: 0 }</code>, gewinnt diese Regel ebenfalls, und die Fragen wirken gequetscht. Setzen Sie die Abstände dann selbst, zum Beispiel so:</p>
+{{ code_reset }}
+<p>Weitere Klassen und Zustände für gezielte Anpassungen sind in <a href="/embed/v2/pulse.js">pulse.js</a> kommentiert.</p>
+'''
+
+behave_h = "Was Studierende erleben"
+behave = '''
+<h3>Ohne Anmeldung</h3>
+<p>Die Selbsttests funktionieren sofort. „Gewusst“ und „Nicht gewusst“ speichert der Browser auf dem Gerät der Studierenden (im <code>localStorage</code> Ihrer Seite). Das Skript stellt dabei keine einzige Anfrage an psi-pulse.</p>
+<h3>Mit Anmeldung</h3>
+<p>Unter einer beantworteten Frage steht „Dauerhaft sichern und per Mail wiederholen“. Wer das wählt, gibt eine E-Mail-Adresse ein und tippt den sechsstelligen Code aus der Mail ab. Ein Passwort gibt es nicht; wer noch kein Konto hat, bekommt dabei eines. Danach überträgt das Skript die bisherigen Antworten aus dem Browser in das Konto und löscht sie dort.</p>
+<p>Angemeldet zeigt jede Frage, ob sie wieder dran ist. Eine Frage, die noch nicht wieder dran ist, lässt sich aufdecken, aber nicht bewerten; so überspringt niemand die Abstände. Wann eine Frage wiederkommt, steht im Abschnitt <a href="#lernlogik">Lernlogik</a>.</p>
+<p>Die Anmeldung gilt für eine Website in einem Browser. Auf einer anderen Website mit psi-pulse-Fragen oder in einem anderen Browser melden sich Studierende einmal neu an. Abmelden löscht Anmeldung und Antworten aus dem Browser.</p>
+<h3>Sprache und Barrierefreiheit</h3>
+<p>Die Beschriftungen erscheinen auf Deutsch oder Englisch, je nach dem <code>lang</code>-Attribut um die Frage; setzen Sie es daher am <code>&lt;html&gt;</code>-Element. Die Knöpfe sind echte Schaltflächen und mit der Tastatur bedienbar, Statusmeldungen werden Screenreadern vorgelesen. Weil die Fragen Farben Ihrer Seite übernehmen, prüfen Sie bitte den Kontrast in Ihrer Gestaltung.</p>
+'''
+
+privacy_h = "Datenschutz und Voraussetzungen"
+privacy = '''
+<p>Ohne Anmeldung überträgt das Skript nichts an psi-pulse. Laden Sie das Skript vom Server von psi-pulse (Variante 1), ruft der Browser dort nur die Skriptdatei ab. Das Skript setzt keine Cookies, bindet kein iframe ein und nutzt keine Tracker. Mit Anmeldung gelten die <a href="/privacy-policy">Datenschutzhinweise von psi-pulse</a>; gespeichert werden die E-Mail-Adresse, auf Wunsch ein Name, Fragen und Antworttexte, Seitenname und Seitenadresse sowie ob eine Antwort gewusst war.</p>
+<p>Erwähnen Sie psi-pulse in den Datenschutzhinweisen Ihrer Seite, und klären Sie mit dem Datenschutz Ihrer Hochschule, ob Sie den Dienst einsetzen dürfen.</p>
+<p>Hat Ihre Seite eine Content Security Policy (CSP, eine Liste erlaubter Quellen im HTTP-Header), braucht sie zwei Einträge:</p>
+<ul>
+<li><code>script-src https://pulse.psi.uni-bamberg.de</code>, oder bei einem direkt eingefügten Skript dessen Hash bzw. <code>'unsafe-inline'</code>,</li>
+<li><code>connect-src https://pulse.psi.uni-bamberg.de</code> für Anmeldung und Antworten.</li>
+</ul>
+<p>Ein Eintrag für <code>frame-src</code> ist nicht nötig.</p>
+'''
+
+logic_h = "Lernlogik: wann eine Frage wiederkommt"
+logic = '''
+<p>Dieser Abschnitt beschreibt, wie psi-pulse für angemeldete Studierende plant. Ohne Anmeldung plant psi-pulse nichts; die Antworten bleiben im Browser.</p>
+
+<h3>Abstände</h3>
+<p>Mit jeder gewussten Antwort wächst der Abstand bis zur nächsten Wiederholung: 1, 2, 4, 7, dann 14 Tage. Danach bleibt es bei 14 Tagen; eine Frage, die man immer weiß, kommt also alle zwei Wochen wieder, ohne Ende. Wer eine Frage nicht mehr sehen möchte, archiviert sie (siehe unten).</p>
+<p>Der Abstand zählt ab der letzten Antwort. Danach ist die Frage „wieder dran“ und kommt in die nächste Erinnerungsmail. Weil diese Mail zu einer festen Uhrzeit kommt, kann es einige Stunden bis einen Tag länger dauern.</p>
+<p>Die erste Antwort gibt man beim Lesen, im Skript. War sie gewusst, ist die Frage nach einem Tag wieder dran. War sie nicht gewusst, steht die Frage schon in der nächsten Erinnerungsmail.</p>
+<p>Seiten können über Attribute im Stil der ersten Version (<code>state-…</code>) eigene Abstände festlegen; sonst gelten die genannten.</p>
+
+<h3>Nicht gewusst</h3>
+<p>Wer „Nicht gewusst“ wählt, steigt nicht auf: Die Frage kommt nach demselben Abstand wieder wie zuletzt. Ist die Antwort beim nächsten Mal wieder „Nicht gewusst“, fällt die Frage auf den nächstkürzeren Abstand zurück, bei jedem weiteren „Nicht gewusst“ um eine weitere Stufe, bis sie in jeder Erinnerungsmail steht. Sobald die Antwort wieder gewusst ist, wächst der Abstand wie gewohnt.</p>
+
+<h3>Erinnerungsmail</h3>
+<p>psi-pulse schickt höchstens eine Erinnerungsmail am Tag, und nur an Tagen, an denen mindestens eine Frage wieder dran ist. Sie kommt ab der Uhrzeit, die Studierende in den Einstellungen wählen (volle Stunden, deutsche Zeit). Sind mehr als sechs Fragen dran, wählt psi-pulse sechs zufällig aus; die übrigen folgen an den nächsten Tagen.</p>
+<p>Jede Frage in der Mail hat einen eigenen Link, dazu gibt es einen Link für alle. Eine Frage aus einer Erinnerungsmail kommt erst dann in eine weitere, wenn sie beantwortet ist, egal ob über die Mail, in der Web-App oder im Skript.</p>
+
+<h3>Wochenauswahl</h3>
+<p>Einmal pro Woche kommt eine zweite Mail mit einer Zufallsauswahl aus allen eigenen Fragen, auch aus solchen, die gerade nicht dran sind. Tag, Uhrzeit und Zahl der Fragen stellen Studierende ein; vorgegeben sind mittwochs sechs Fragen. Die Auswahl gilt bis zur nächsten, dann funktioniert ihr Link nicht mehr. Archivierte Fragen erscheinen darin nicht.</p>
+<p>Antworten in der Wochenauswahl verschieben den Plan nicht. Nur ein „Nicht gewusst“ zählt: Folgt darauf beim nächsten Mal noch eines, fällt die Frage wie oben zurück.</p>
+
+<h3>Serie</h3>
+<p>Wer eine Wochenauswahl bis zur letzten Frage beantwortet, verlängert die Serie um eine Woche; die Web-App zeigt sie in der Übersicht. Kommt die nächste Wochenauswahl, bevor die vorige fertig ist, beginnt die Serie wieder bei null.</p>
+
+<h3>Pause</h3>
+<p>psi-pulse pausiert alle Mails für 14 Tage, wenn Studierende</p>
+<ul>
+<li>sieben Tage nach einer Erinnerungsmail noch keine Frage aus den Erinnerungsmails beantwortet haben oder</li>
+<li>14 Tage lang keine Wochenauswahl bis zum Ende bearbeitet haben.</li>
+</ul>
+<p>Die Pause kündigt eine kurze Mail an. Nach 14 Tagen meldet sich psi-pulse mit einer Mail zurück, und die Erinnerungen laufen wieder. Wer vorher eine seiner Fragen beantwortet, beendet die Pause sofort; auch das bestätigt eine Mail.</p>
+
+<h3>Vernachlässigte Fragen</h3>
+<p>Die Web-App zeigt zu jeder Frage einen Status (bisher auf Englisch). Bleibt eine Frage doppelt so lange unbeantwortet wie ihr aktueller Abstand, beim Abstand von 7 Tagen also 14 Tage nach der letzten Antwort, gilt sie als vernachlässigt („Neglected“). Ein Abstand unter einem Tag, etwa direkt nach „Nicht gewusst“, zählt dabei wie ein Tag: Vernachlässigt ist eine Frage frühestens zwei Tage nach der letzten Antwort. Nach der nächsten Antwort außerhalb der Wochenauswahl steht sie auf „Pending“, nach einer weiteren ist sie wieder aktiv. Der Status ändert nichts daran, wann die Frage kommt; die Übersicht der Web-App zählt die aktiven Fragen.</p>
+
+<h3>Archivieren und löschen</h3>
+<p>In der Web-App auf der Seite „Questions“ wählen Studierende Fragen aus und archivieren oder löschen sie; beim Beantworten aus einer Mail steht „Archive“ auch im Menü der Frage. Archivierte Fragen kommen nicht mehr in Erinnerungsmails und Wochenauswahlen. Ihr Lernstand bleibt, und das Archivieren lässt sich dort rückgängig machen. Löschen entfernt die Frage mit ihrem Lernstand; beantwortet man sie später im Skript noch einmal, beginnt sie von vorn. Wer das Konto löscht, löscht alle Fragen.</p>
+
+<h3>Wie lange Codes und Links gelten</h3>
+<dl>
+<dt>Anmeldecode im Skript</dt><dd>10 Minuten, höchstens fünf Versuche</dd>
+<dt>Anmeldung im Skript</dt><dd>90 Tage auf dieser Website in diesem Browser, bis zum Abmelden</dd>
+<dt>Anmeldelink der Web-App</dt><dd>2 Stunden, nur einmal verwendbar</dd>
+<dt>Link zu einer Frage aus der Erinnerungsmail</dt><dd>bis die Frage beantwortet ist</dd>
+<dt>Link für alle Fragen einer Erinnerungsmail</dt><dd>bis alle beantwortet sind, höchstens 30 Tage</dd>
+<dt>Link zur Wochenauswahl</dt><dd>bis sie fertig bearbeitet ist oder die nächste kommt</dd>
+<dt>Link zum Abbestellen</dt><dd>bis er benutzt wird</dd>
+</dl>
+<p>Konten, deren Anmeldung nie bestätigt wurde, löscht psi-pulse nach 30 Tagen.</p>
+'''
+
+contact_h = "Fragen und Rückmeldungen"
+contact = '''
+<p>Wenn Sie psi-pulse in Ihrer Lehre einsetzen möchten, einen eigenen Client bauen wollen oder etwas nicht wie beschrieben funktioniert, schreiben Sie an <a href="mailto:dh.psi@uni-bamberg.de">dh.psi@uni-bamberg.de</a>.</p>
+'''
+
+# Codebeispiele: src ist der Quelltext, lang html oder css, label der Name für Screenreader
+code.first.label = "Beispiel: Skript und eine Frage"
+code.first.lang = "html"
+code.first.src = '''
+<script defer
+  src="https://pulse.psi.uni-bamberg.de/embed/v2/pulse.min.js"></script>
+
+<pulse-question key="krypto-signatur">
+  <p>Was garantiert eine digitale Signatur?</p>
+  <details><summary>Antwort</summary>
+    <p>Integrität und Authentizität der Nachricht.</p>
+  </details>
+</pulse-question>
+'''
+
+code.load.label = "Beispiel: drei Arten, das Skript einzubinden"
+code.load.lang = "html"
+code.load.src = '''
+<!-- 1. vom Server von psi-pulse -->
+<script defer
+  src="https://pulse.psi.uni-bamberg.de/embed/v2/pulse.min.js"></script>
+
+<!-- 2. eigene Kopie der Datei -->
+<script defer src="/js/pulse.min.js"
+  data-host="https://pulse.psi.uni-bamberg.de"></script>
+
+<!-- 3. direkt in der Seite -->
+<script data-host="https://pulse.psi.uni-bamberg.de">
+  /* Inhalt von pulse.min.js */
+</script>
+'''
+
+code.deck.label = "Beispiel: Stapel mit Gruppe und Zusammenfassung"
+code.deck.lang = "html"
+code.deck.src = '''
+<pulse-deck group="Kryptographie">
+  <pulse-question key="krypto-signatur">…</pulse-question>
+  <pulse-question key="krypto-hash">…</pulse-question>
+</pulse-deck>
+
+<pulse-summary compact></pulse-summary>
+'''
+
+code.vars.label = "Beispiel: Farben über CSS-Variablen"
+code.vars.lang = "css"
+code.vars.src = '''
+pulse-question, pulse-deck, pulse-summary {
+  --pulse-accent: #00457d;
+  --pulse-on-accent: #fff;
+  --pulse-rule: #ccdae5;
+  --pulse-radius: .5rem;
+}
+'''
+
+code.reset.label = "Beispiel: Abstände nach einem globalen Reset"
+code.reset.lang = "css"
+code.reset.src = '''
+/* nach dem Reset der Seite */
+:is(pulse-question, pulse-deck) { margin: .75em 0; padding: .75em; }
+pulse-deck pulse-question { margin: 0; padding: 0; }
+:is(pulse-question, pulse-deck) :is(.pulse-bar, .pulse-grade, .pulse-a) {
+  margin-top: .6em;
+}
+:is(pulse-question, pulse-deck) .pulse-btn { padding: .4em .9em; }
+'''

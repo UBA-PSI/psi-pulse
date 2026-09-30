@@ -1,8 +1,9 @@
+import {usePrisma} from "~/server/utils/prisma";
 import protectInternalRoute from "~/server/utils/protectInternalRoute";
 import {PrismaClient} from "@prisma/client";
 import {AccountStats} from "~/types/account";
 
-const prisma = new PrismaClient();
+const prisma = usePrisma();
 
 export default defineEventHandler(async (event): Promise<AccountStats> => {
     const session = await protectInternalRoute(event)

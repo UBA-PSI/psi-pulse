@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulse Embed v2 – Demo</title>
+<meta name="pulse:page" content="Pulse Embed v2 Demo">
+<style>
+  /* Umschaltbare Beispiel-Themes; ?theme=plain|slides|infzone|infzone-dark */
+  body { margin: 0; }
+  main { max-width: 42rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  .switch { font: 14px system-ui, sans-serif; padding: .5rem 1.25rem; border-bottom: 1px solid #ccc; }
+
+  /* psi-slides print.html (Tokens aus build.js, PRINT_CSS) */
+  .theme-slides {
+    --ink: #1f1f24; --ink-soft: #6b6b72; --paper: #fafaf7; --rule: #c8c8c0; --emph: #8b2e00;
+    --radius-card: 0.3em; --serif: Georgia, serif; --sans: system-ui, sans-serif;
+    font-family: var(--serif); font-size: 13px; line-height: 1.6; color: var(--ink); background: var(--paper);
+  }
+  .theme-slides pulse-question, .theme-slides pulse-deck, .theme-slides pulse-stack, .theme-slides pulse-status, .theme-slides pulse-summary {
+    --pulse-accent: var(--emph); --pulse-rule: var(--rule); --pulse-radius: var(--radius-card);
+    --pulse-ui-font: var(--sans); --pulse-muted: var(--ink-soft); --pulse-on-accent: var(--paper);
+    --pulse-bg: color-mix(in oklch, var(--ink) 4%, transparent);
+  }
+
+  /* inf.zone (Hextra: --primary-hue/-saturation, Roboto, .dark) */
+  .theme-infzone { --primary-hue: 212deg; --primary-saturation: 100%;
+    font-family: Roboto, system-ui, sans-serif; font-size: 17px; line-height: 1.5; color: #1f2937; background: #fff; }
+  .theme-infzone pulse-question, .theme-infzone pulse-deck, .theme-infzone pulse-stack, .theme-infzone pulse-status, .theme-infzone pulse-summary {
+    --pulse-accent: hsl(var(--primary-hue) var(--primary-saturation) 38%);
+    --pulse-rule: #d1d5db; --pulse-radius: .5rem; --pulse-on-accent: #fff;
+  }
+  .theme-infzone.dark { color: #e5e7eb; background: #111827; }
+  .theme-infzone.dark pulse-question, .theme-infzone.dark pulse-deck, .theme-infzone.dark pulse-stack, .theme-infzone.dark pulse-status, .theme-infzone.dark pulse-summary {
+    --pulse-accent: hsl(var(--primary-hue) var(--primary-saturation) 72%); --pulse-rule: #374151; --pulse-on-accent: #111827;
+  }
+  .theme-infzone.dark .switch a { color: #93c5fd; } /* Umschalter: Browser-Blau hätte auf Dunkel zu wenig Kontrast */
+  code { font-family: ui-monospace, Menlo, monospace; font-size: .9em; }
+</style>
+</head>
+<body>
+<div class="switch">Theme:
+  <a href="?theme=plain">ohne Anpassung</a> ·
+  <a href="?theme=slides">psi-slides print</a> ·
+  <a href="?theme=infzone">inf.zone</a> ·
+  <a href="?theme=infzone-dark">inf.zone dunkel</a>
+</div>
+<main>
+  <h1>Pulse Embed v2</h1>
+  <pulse-summary compact></pulse-summary>
+
+  <p>Eine einzelne Frage mit stabilem Schlüssel und formatierter Antwort:</p>
+  <pulse-question key="demo-https-port">
+    <p>Auf welchem TCP-Port lauscht ein Webserver standardmäßig für HTTPS?</p>
+    <details><summary>Antwort</summary>
+      <p>Auf Port <code>443</code>. Unverschlüsseltes HTTP nutzt Port <code>80</code>.</p>
+    </details>
+  </pulse-question>
+
+  <p>Ein Stapel mit drei Fragen, von denen jeweils eine angezeigt wird:</p>
+  <pulse-deck group="Kryptographie">
+    <pulse-question key="demo-krypto-1">
+      <p>Was garantiert eine digitale Signatur, was eine reine Verschlüsselung nicht garantiert?</p>
+      <details><summary>Antwort</summary><p>Authentizität und Integrität: Die Nachricht stammt vom Inhaber des privaten Schlüssels und wurde nicht verändert.</p></details>
+    </pulse-question>
+    <pulse-question key="demo-krypto-2">
+      <p>Warum speichert man Passwörter nicht einfach als SHA-256-Hash?</p>
+      <details><summary>Antwort</summary><p>SHA-256 ist schnell; Angreifer können Milliarden Kandidaten pro Sekunde testen. Besser sind langsame, gesalzene Verfahren wie Argon2 oder bcrypt.</p></details>
+    </pulse-question>
+    <pulse-question key="demo-krypto-3">
+      <p>Wofür steht das „S“ in HTTPS?</p>
+      <details><summary>Antwort</summary><p>Für „Secure“: HTTP über TLS.</p></details>
+    </pulse-question>
+  </pulse-deck>
+
+  <p lang="en">An English question inside a German page (language follows the nearest <code>lang</code>):</p>
+  <pulse-question lang="en" key="demo-en">
+    <p>What does DNS translate?</p>
+    <details><summary>Answer</summary><p>Domain names into IP addresses (and more).</p></details>
+  </pulse-question>
+
+  <p>Altes Markup (v1, Attribute) funktioniert weiter:</p>
+  <pulse-question question="Was ist ein Botnetz?" answer="Ein Verbund kompromittierter Geräte, die zentral gesteuert werden."></pulse-question>
+
+  <p>Ein v1-Stapel (<code>pulse-stack</code>, wie auf web.psi) erscheint wie <code>pulse-deck</code>:</p>
+  <pulse-stack group="Netzwerke">
+    <pulse-question question="Welche Schicht adressiert IP?" answer="Die Vermittlungsschicht (Schicht 3)."></pulse-question>
+    <pulse-question question="Wofür steht TCP?" answer="Transmission Control Protocol."></pulse-question>
+  </pulse-stack>
+
+  <h2>Ihr Stand auf dieser Seite</h2>
+  <pulse-summary></pulse-summary>
+</main>
+<!-- eigene Datei statt Inline-Skript: die App-CSP erlaubt nur Skripte von der eigenen Herkunft -->
+<script src="demo-theme.js"></script>
+<script src="pulse.js" defer></script>
+</body>
+</html>

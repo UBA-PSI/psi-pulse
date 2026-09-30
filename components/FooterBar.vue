@@ -10,10 +10,12 @@
   </footer>
 </template>
 <script lang="ts" setup>
-const navigationFooter = {
+const t = useUiText()
+const lang = useUiLang()
+const navigationFooter = computed(() => ({
   main: [
-    {name: 'Imprint', href: '/imprint'},
-    {name: 'Privacy Policy', href: '/privacy-policy'},
+    {name: t.value.imprint, href: 'https://www.uni-bamberg.de/psi/kontaktnavigation/impressum/'},
+    {name: t.value.privacy, href: `/privacy-policy?lang=${lang.value}`},
   ],
-}
+}))
 </script>

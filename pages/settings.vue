@@ -13,30 +13,30 @@
 
             <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
               <div class="sm:col-span-3">
-                <UFormGroup label="How do want to be called?" name="name">
+                <UFormField label="How do you want to be called?" name="name">
                   <UInput v-model="state.name" icon="i-heroicons-user" placeholder="John"/>
-                </UFormGroup>
+                </UFormField>
               </div>
               <div class="sm:col-span-3">
-                <UFormGroup label="E-Mail" name="name">
+                <UFormField label="E-Mail" name="name">
                   <UInput v-model="user.email" disabled icon="i-heroicons-envelope" placeholder="foo@bar.com"/>
-                </UFormGroup>
+                </UFormField>
               </div>
 
               <div class="flex items-center justify-between sm:col-span-6">
-                  <span class="flex flex-grow flex-col">
-                    <span class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Statistics</span>
+                  <span :lang="researchLang" class="flex flex-grow flex-col">
+                    <span class="text-sm font-medium leading-6 text-gray-900 dark:text-white">{{ researchText.title }}</span>
                     <span
-                        class="text-sm text-gray-500 dark:text-gray-400">Save when and how you answered your questions to allow analysis.</span>
+                        class="text-sm text-gray-500 dark:text-gray-400">{{ researchText.body }} <nuxt-link class="underline" to="/privacy-policy">{{ researchText.privacy }}</nuxt-link></span>
                   </span>
-                <UToggle v-model="state.logQuestions"/>
+                <USwitch v-model="state.logQuestions" :aria-label="researchText.toggle" :lang="researchLang"/>
               </div>
 
               <div v-if="statisticsExist" class="flex items-center justify-between sm:col-span-6">
                   <span class="flex flex-grow flex-col">
                     <span class="text-sm text-gray-500 dark:text-gray-400">There are currently data stored. You can delete that if you want to.</span>
                   </span>
-                <UButton color="red" size="xs" @click="showDeleteStatisticsAlert = true">
+                <UButton color="error" size="xs" @click="showDeleteStatisticsAlert = true">
                   Delete Statistics
                 </UButton>
               </div>
@@ -57,37 +57,37 @@
       <span class="text-sm font-medium leading-6 text-gray-900 dark:text-white">E-Mails</span>
       <span class="text-sm text-gray-500 dark:text-gray-400">Once a day, we will send you an email with your unanswered questions.</span>
     </span>
-                <UToggle v-model="state.receiveEmails"/>
+                <USwitch v-model="state.receiveEmails" aria-label="E-Mails"/>
 
               </div>
 
-              <UFormGroup v-if="state.receiveEmails" label="Reminder Delivery Time" name="reminder delivery time">
-                <USelect v-model="state.preferredReminderEmailDeliveryTime" :options="hourItems"
+              <UFormField v-if="state.receiveEmails" label="Reminder Delivery Time" name="reminder delivery time" :help="timeZoneHelp">
+                <USelect v-model="state.preferredReminderEmailDeliveryTime" :items="hourItems"
                          placeholder="Select..."/>
-              </UFormGroup>
+              </UFormField>
 
               <div v-if="state.receiveEmails" class="flex items-center justify-between">
     <span class="flex flex-grow flex-col">
-      <span class="text-sm font-medium leading-6 text-gray-900 dark:text-white" passive>Weekly E-Mails</span>
+      <span class="text-sm font-medium leading-6 text-gray-900 dark:text-white">Weekly E-Mails</span>
       <span class="text-sm text-gray-500 dark:text-gray-400"> Weekly emails help you to keep on learning, even if all of your questions are answered.</span>
     </span>
-                <UToggle v-model="state.receiveWeeklyEmails"/>
+                <USwitch v-model="state.receiveWeeklyEmails" aria-label="Weekly E-Mails"/>
 
               </div>
               <div v-if="state.receiveEmails && state.receiveWeeklyEmails"
                    class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                 <div class="sm:col-span-2 sm:col-start-1">
-                  <UFormGroup label="Receive Weekly Email"
+                  <UFormField label="Receive Weekly Email"
                               name="toggle">
                     <UInput v-model="state.weeklyEmailsNumber" type="receive weekly"/>
-                  </UFormGroup>
+                  </UFormField>
                 </div>
 
                 <div class="sm:col-span-2">
-                  <UFormGroup label="Weekly Delivery Time" name="weekly delivery time">
-                    <USelect v-model="state.preferredWeeklyEmailDeliveryTime" :options="hourItems"
+                  <UFormField label="Weekly Delivery Time" name="weekly delivery time" :help="timeZoneHelp">
+                    <USelect v-model="state.preferredWeeklyEmailDeliveryTime" :items="hourItems"
                              placeholder="Select..."/>
-                  </UFormGroup>
+                  </UFormField>
 
 
                 </div>
@@ -95,10 +95,10 @@
                 <div class="sm:col-span-2">
 
 
-                  <UFormGroup label="Weekly Delivery Day" name="weekly delivery day">
-                    <USelect v-model="state.preferredWeeklyEmailDeliveryDay" :options="dayItems"
+                  <UFormField label="Weekly Delivery Day" name="weekly delivery day">
+                    <USelect v-model="state.preferredWeeklyEmailDeliveryDay" :items="dayItems"
                              placeholder="Select..."/>
-                  </UFormGroup>
+                  </UFormField>
 
 
                 </div>
@@ -113,7 +113,7 @@
 
         <div class="mt-6 flex items-center justify-between gap-x-6">
           <div class="flex gap-x-4">
-            <UButton color="red" l @click="displayDeleteAlert = true">
+            <UButton color="error" l @click="displayDeleteAlert = true">
               Delete Account
             </UButton>
             <UButton @click="exportData">
@@ -126,7 +126,7 @@
         </div>
       </form>
 
-      <UModal v-model="displayDeleteAlert" class="w-10">
+      <UModal v-model:open="displayDeleteAlert" title="Delete Account"><template #content>
         <UCard>
           Do you really want to delete your account?
           <template #footer>
@@ -134,15 +134,15 @@
               <UButton variant="soft" @click="displayDeleteAlert = false">
                 Cancel
               </UButton>
-              <UButton color="red" @click="handleDeleteAccount">
+              <UButton color="error" @click="handleDeleteAccount">
                 Delete Account
               </UButton>
             </div>
           </template>
         </UCard>
-      </UModal>
+      </template></UModal>
 
-      <UModal v-model="showDeleteStatisticsAlert" class="w-10">
+      <UModal v-model:open="showDeleteStatisticsAlert" title="Delete Statistics"><template #content>
         <UCard>
           Do you want to delete your statistics?
           <template #footer>
@@ -150,18 +150,24 @@
               <UButton variant="soft" @click="showDeleteStatisticsAlert = false">
                 Cancel
               </UButton>
-              <UButton color="red" @click="handleDeleteStatistics">
+              <UButton color="error" @click="handleDeleteStatistics">
                 Delete Statistics
               </UButton>
             </div>
           </template>
         </UCard>
-      </UModal>
+      </template></UModal>
     </CustomCard>
   </div>
 </template>
 
 <script lang="ts" setup>
+const researchLang = /^de/i.test(useRequestHeaders(['accept-language'])['accept-language'] || (process.client ? navigator.language : '') || 'de') ? 'de' : 'en'
+const researchText = researchLang === 'de'
+  ? {title: 'Forschung', toggle: 'Antworten für die Forschung speichern', body: 'Antworten für die Lernforschung des Lehrstuhls speichern: welche Frage, wann, gewusst ja/nein. Pseudonym, ohne E-Mail und Name, Löschung nach einem Jahr, jederzeit widerrufbar.', privacy: 'Datenschutz'}
+  : {title: 'Research', toggle: 'Store answers for research', body: "Store your answers for the chair's learning research: which question, when, known yes/no. Pseudonymous, without email and name, deleted after one year, revocable at any time.", privacy: 'Privacy'}
+// Uhrzeiten gelten in deutscher Zeit, egal in welcher Zeitzone Browser oder Server laufen (A17)
+const timeZoneHelp = researchLang === 'de' ? 'Deutsche Zeit (Berlin)' : 'German time (Berlin)'
 import type {UpdateAccountBody} from "~/types/account";
 
 useHead({
@@ -174,10 +180,9 @@ definePageMeta({
 
 const user = useUser();
 
-function formatTime(dateString: string) {
-  const date = new Date(dateString);
-  let hours = date.getHours();
-  return String(hours);
+// Die API liefert die Stunde als Zahl in deutscher Zeit; keine Umrechnung in die Zeitzone des Browsers (A17)
+function formatTime(hour: number) {
+  return Number(hour);
 }
 
 
@@ -275,8 +280,8 @@ const onSubmit = async (e: Event) => {
 
   const body: UpdateAccountBody = {
     name: state.name,
-    preferredReminderDeliveryTime: state.preferredReminderEmailDeliveryTime,
-    preferredWeeklyDeliveryTime: state.preferredWeeklyEmailDeliveryTime,
+    preferredReminderDeliveryTime: Number(state.preferredReminderEmailDeliveryTime),
+    preferredWeeklyDeliveryTime: Number(state.preferredWeeklyEmailDeliveryTime),
     preferredWeeklyDeliveryDay: parseInt(state.preferredWeeklyEmailDeliveryDay),
     receiveEmails: state.receiveEmails,
     receiveWeeklyEmails: state.receiveWeeklyEmails,
