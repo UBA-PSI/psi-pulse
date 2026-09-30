@@ -5,7 +5,7 @@
         Sign Up
       </h1>
       <UForm ref="form" :state="state" :validate="validate" class="space-y-4 w-80" @submit="onSubmit">
-        <UFormField label="How do you want to be called?" name="name">
+        <UFormField label="How do you want to be called? (optional)" name="name">
           <UInput v-model="state.name" icon="i-heroicons-user" placeholder="John"/>
         </UFormField>
         <UFormField label="Email" name="email">
@@ -42,7 +42,6 @@ definePageMeta({
 const validate = (state: any): FormError[] => {
   const errors = []
   if (!state.email) errors.push({name: 'email', message: 'Required'})
-  if (!state.name) errors.push({name: 'name', message: 'Required'})
   return errors
 }
 const state = reactive({
@@ -66,7 +65,8 @@ async function onSubmit(event: FormSubmitEvent<any>) {
     await navigateTo("/email-verification");
   } catch (e) {
     const err = e as FetchError;
-    form.value?.setErrors([{"name": "email", "message": err.response._data.message}])
+    const message = err.response?._data?.message
+    form.value?.setErrors([{name: message === "Invalid name" ? "name" : "email", message}])
   }
   loading.value = false
 }

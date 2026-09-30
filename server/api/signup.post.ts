@@ -21,8 +21,9 @@ export default defineEventHandler(async (event) => {
             statusCode: 400
         });
     }
-    const name = normalizeName(body?.name);
-    if (!name) {
+    // Name ist optional (wie beim Widget); nur ein angegebener, aber unzulässiger Name wird abgelehnt
+    const name = body?.name == null ? "" : normalizeName(body.name);
+    if (name === null) {
         throw createError({
             message: "Invalid name",
             statusCode: 400

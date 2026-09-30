@@ -65,8 +65,8 @@
     <p>Wenn Sie ein Konto anlegen, verarbeiten wir:</p>
     <ul class="list-disc pl-6 space-y-1">
       <li>
-        Ihre E-Mail-Adresse und einen Namen (bei Registrierung über eine eingebettete Frage optional; ohne Angabe
-        verwenden wir den Teil der Adresse vor dem @),
+        Ihre E-Mail-Adresse und, wenn Sie einen angeben, einen Namen für die Anrede (freiwillig; ohne Namen
+        beginnen Mails mit „Hallo,“),
       </li>
       <li>die Fragen, die Sie gespeichert haben, mit der Webseite, von der sie stammen,</li>
       <li>

@@ -23,7 +23,7 @@ An account consists of an email address and an optional name. There are two ways
 |---|---|---|
 | Method | six-digit code by email | sign-in link by email |
 | Validity | 10 minutes, at most 5 attempts | 2 hours; a new request within the first hour sends the same link again |
-| Account | created on first sign-in, name optional | `/signup` asks for a name |
+| Account | created on first sign-in | created by `/signup` |
 | Result | API key for `/api/v1` (`X-API-KEY` header), valid 90 days; every sign-in creates a new key, signing out deletes it | session cookie |
 
 Details:
