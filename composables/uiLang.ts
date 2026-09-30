@@ -68,6 +68,7 @@ export const UI_TEXT = {
         tryLater: "Bitte später noch einmal versuchen.",
         imprint: "Impressum",
         privacy: "Datenschutz",
+        sourceCode: "Quelltext",
         stateLabel: {"in-text": "im Text", "1 day": "1 Tag", "2 days": "2 Tage", "4 days": "4 Tage", "1 week": "1 Woche", "2 weeks": "2 Wochen"} as Record<string, string>,
     },
     en: {
@@ -105,6 +106,7 @@ export const UI_TEXT = {
         tryLater: "Please try again later.",
         imprint: "Imprint",
         privacy: "Privacy policy",
+        sourceCode: "Source code",
         stateLabel: {} as Record<string, string>,
     }
 }

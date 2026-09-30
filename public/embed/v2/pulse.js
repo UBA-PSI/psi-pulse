@@ -1,4 +1,5 @@
 /*! Pulse Embed v2 – Lehrstuhl für Privatsphäre und Sicherheit in Informationssystemen, Universität Bamberg.
+ *  SPDX-License-Identifier: AGPL-3.0-only – Quelltext: https://github.com/UBA-PSI/psi-pulse
  *  Markup, Konfiguration und CSS-Variablen: docs/embed-v2.md
  *  Ohne Anmeldung stellt dieses Skript keine Anfragen an Pulse; Antworten bleiben im Browser. */
 (function () {

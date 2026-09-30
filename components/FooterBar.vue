@@ -16,6 +16,8 @@ const navigationFooter = computed(() => ({
   main: [
     {name: t.value.imprint, href: 'https://www.uni-bamberg.de/psi/kontaktnavigation/impressum/'},
     {name: t.value.privacy, href: `/privacy-policy?lang=${lang.value}`},
+    // AGPL-3.0 § 13: die laufende, veränderte Version bietet ihren Quelltext an
+    {name: t.value.sourceCode, href: 'https://github.com/UBA-PSI/psi-pulse'},
   ],
 }))
 </script>

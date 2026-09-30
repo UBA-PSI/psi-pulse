@@ -67,3 +67,5 @@ Dependency maintenance and the September 2026 migration: [docs/dependencies.md](
 Pulse was written by Florian Seida as part of his bachelor's thesis at the Chair of Privacy and Security in Information Systems (PSI), University of Bamberg. The first commit of this repository is his original version. Since 2026 the chair develops and runs it as psi-pulse.
 
 Licensed under the GNU Affero General Public License v3.0, see [`LICENSE`](LICENSE). If you run a modified version as a network service, you must offer its source code to your users.
+
+Exceptions: the fonts in `landing/static/fonts/` are licensed under the SIL Open Font License 1.1 (license files next to them). The seal of the University of Bamberg (`landing/static/img/ub-siegel-weiss.webp`) is not covered by the AGPL; it may not be used outside the university's own services.
