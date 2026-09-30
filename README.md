@@ -1,70 +1,158 @@
-# Developer Guide – Pulse
+# psi-pulse
 
-Pulse is a web application for learning flashcards based on spaced repetition. Spaced repetition can be defined as [a method of reviewing material at systematic intervals](https://www.kpu.ca/sites/default/files/Learning%20Centres/Think_SpacedRepetition_LA.pdf). At systematic intervals, Pulse displays questions to the users. The user previously added these questions by visiting websites integrating Pulse in their texts. By integrating Pulse, website owners can design questions that the user can learn. The user must then answer if he remembered the Pulse question's answer (further called 'answer the question'). Depending on whether the user remembered or not, the question will be asked by Pulse more or less frequently.
-# Web App
-The Pulse web app is Pulse's central component. As the central component, it manages user authentication and the user's questions, and automatically sends out emails. To accomplish this functionality, Pulse introduces different kinds of tokens.
-## **Account**
-Each person who wants to use Pulse needs their own Pulse account. A Pulse account requires, besides a name, only an email address, as the authentication is passwordless through a magic link. The web app's authentication and accounts are used by the web app itself and third-party websites integrating Pulse. These third-party websites use the web app and its authentication to store and update Pulse questions for users. How third-party access works is further described in the Third-Party Token section and the Embed chapter.
+psi-pulse puts short review questions into lecture notes and sends them back to readers by email at growing intervals (spaced repetition). The Chair of Privacy and Security in Information Systems (PSI) at the University of Bamberg runs it at [pulse.psi.uni-bamberg.de](https://pulse.psi.uni-bamberg.de/).
 
-In the web application, the user can get an overview of all stored questions, answer questions, and customize their account. If the user does want a copy of its data (Art. 20 GDPR), an export button can be found in the user settings. The user settings also do provide an account delete button (Art. 17 GDPR).
-## Question Lifecycle
-A Pulse question walks through different states to archive spaced repetition. Additional features are implemented in Pulse to increase the effectiveness of Pulse.
+The repository contains three parts:
 
-The lifecycle of a question always begins at a third-party website. The third-party website implements Pulse and provides designed Pulse questions. Each Pulse question consists of a question, an answer to the question, the current page name, and the states it walks through. Additionally, a group can be defined to categorize the questions further within a page. By answering the question once, the question is added to the user's account, and stepping through the different states starts. How to write Pulse questions into a page is described in [`docs/embed-v2.md`](docs/embed-v2.md).
+- the **embed script** (`public/embed/v2/pulse.js`), which lecture notes include to show questions in the text,
+- the **web app** (Nuxt): accounts, dashboard, settings, the pages behind the links in emails, the scheduler that sends the emails,
+- the **home page** (`landing/`), a static site that is served separately (see [Home page](#home-page)).
 
-Each question can walk through a maximum of six states. Each state is characterized by a label and an offset. The offset describes after how many days the question is open to be answered again in its current state after answering it the last time. While the first state describes how many days the question is asked again if the user cannot remember answering it for the first time, the final state defines how many times the user gets asked the question again if he can always remember. The state will increase if the user remembers the answer to a question again and has not previously forgotten it. The state will not increase but stay the same if the user previously forgot the answer to the question. The state will also stay the same if the user has previously remembered the question but has now forgotten it. If the user forgets a question twice in a row, the question falls back to the previous state. Overall, the goal is to keep all questions in their final state.
+## How it works
 
-Pulse introduces an additional property to the Pulse question to increase user motivation. This property describes how active a user is learning a question. A question is *active* if the user always answers the question within the current state's offset since the question is opened. If the user misses answering the question within the offset once, the question is *neglected*. Answering then the question again with the offset makes it *pending*. After answering the question two times in a row, the question is marked as active again. How many of the added questions are active are displayed on the user's home screen. Additionally, on the home screen, the oldest active question is displayed. Both types of information should motivate the user to continue learning.
+1. A page includes the embed script and marks up questions with `<pulse-question question="…" answer="…">`.
+2. Readers answer in the text with "I knew it" or "I didn't". Without signing in, answers stay in the browser.
+3. Readers who sign in with their email address get their questions stored in an account. From then on, psi-pulse emails questions that are due for review.
+4. How soon a question comes back depends on the previous answers.
 
-There are two options if the user does not want to be asked a question again. The first option is to archive the question. The question will not be checked for being opened. The second option is to delete the question entirely.
+## Accounts and sign-in
+
+An account consists of an email address and an optional name. There are two ways to sign in:
+
+| | Embed script | Web app (`/login`, `/signup`) |
+|---|---|---|
+| Method | six-digit code by email | sign-in link by email |
+| Validity | 10 minutes, at most 5 attempts | 2 hours; a new request within the first hour sends the same link again |
+| Account | created on first sign-in, name optional | `/signup` asks for a name |
+| Result | API key for `/api/v1` (`X-API-KEY` header), valid 90 days; every sign-in creates a new key, signing out deletes it | session cookie |
+
+Details:
+
+- **Code storage:** codes are stored as HMAC-SHA256 under `LOGIN_CODE_SECRET`. Without this secret (at least 32 characters) the code sign-in answers 503.
+- **Sign-in links:** opening a link does not sign in yet. The page asks for a click (POST with a same-origin check), so link scanners in mail systems cannot use up the link.
+- **No account enumeration:** login and signup respond the same way whether an address has an account or not.
+- **Unconfirmed accounts:** accounts whose address was never confirmed are deleted after 30 days.
+- **Rate limits** (in memory, per instance): at most one mail per address per minute and five per day, plus-aliases included; 200 mail requests per IP per hour. The client IP is taken from `X-Forwarded-For`, so only the reverse proxy may reach the app.
+- **Sessions** (`server/utils/auth.ts`): random IDs stored in the database, cookie `auth_session` (HttpOnly, SameSite=Lax, Secure in production). A session stays active for one day and can be renewed for another 14 days of idle time. Requests that change data need an `Origin` header matching the host.
+- **Settings:** users can export their data (Art. 20 GDPR), delete their research data, and delete their account (Art. 17 GDPR).
+- **Language:** the account language (German or English) is taken from the browser at signup or from the embed script's `lang`. It decides the language of all emails.
+
+## Questions and review intervals
+
+A question is added to the account the first time a signed-in reader answers it in the text. It is stored with its text and answer, page name and URL, an optional group, and its review states.
+
+**States.** Each question has up to six states, each with a label and an offset in days. `INITIAL`, `STATE_1` and `FINAL` are required; `STATE_2` to `STATE_4` are optional and skipped when missing. The defaults are:
+
+| State | `INITIAL` | `STATE_1` | `STATE_2` | `STATE_3` | `STATE_4` | `FINAL` |
+|---|---|---|---|---|---|---|
+| Label | in-text | 1 day | 2 days | 4 days | 1 week | 2 weeks |
+| Offset (days) | 0 | 1 | 2 | 4 | 7 | 14 |
+
+A question is due again once the offset of its current state has passed since the last answer. The rules for moving between states (`server/utils/editQuestion.ts`):
+
+- **"I knew it"** moves the question up one state. Remembering it in `FINAL` moves it to `LONG_TERM`, an extra state that uses the `FINAL` offset.
+- **"I didn't" once** keeps the state.
+- **"I didn't" again right after** moves the question down one state, and so on with each further miss. From `LONG_TERM` it goes back to `FINAL`.
+- **Answers from the weekly email** do not move a question up; a miss there only moves `LONG_TERM` back to `FINAL`.
+
+**Active, neglected, pending.** A question is *active* while it is answered on time. If it is not answered within twice its offset (at least one day), it becomes *neglected*. The next answer makes it *pending*, the one after that *active* again.
+
+**Dashboard.** The dashboard (`/home`) shows the number of questions, the share that is active, the number of days the longest-running question has been on time, and the weekly streak.
+
+**Archive and delete.** Archived questions no longer come back by email, and archiving can be undone. Deleting removes the question.
+
 ## Emails
-Pulse features additional types of emails besides the required login email containing the magic link. These additional types aim to increase interaction with Pulse and, therefore, the learning effectivity.
-### Reminder
-Reminder emails help the user become aware of open questions and keep them active. A reminder email is sent once a day and contains a maximum of six non-archived open questions. If there are more than six non-archived open questions, the questions get selected randomly. All remaining questions walk through the same process the following day as long as they are not sent out.
 
-A reminder email consists of two important elements. The first element is the list of the selected questions. For each question, a dedicated answer button exists, enabling answering only chosen questions. The second element is the *answer all questions* button, so the user does not need to open all questions after each other.
+All times are full hours in German time (Europe/Berlin), independent of the server's time zone.
 
-Not reacting to a reminder email can have multiple consequences. The first consequence is that the user may miss answering the questions in time and, therefore, get neglected. If the user does not answer at least one question of a reminder email for more than a week, another consequence is that sending out reminder emails is paused as the user gets *paused.*
+| Email | When |
+|---|---|
+| Sign-in code / sign-in link | on request (see above) |
+| Reminder | at most once a day at the preferred hour (default 14:00), if questions are due |
+| Weekly selection | once a week on the preferred day and hour (default Wednesday 16:00) |
+| Pause | when reminders or weekly selections are ignored (see below) |
+| Welcome back | when a paused user answers a question |
+| Pause over | when a pause ends after 14 days |
 
-Reminders are enabled by default but can be disabled. If reminders are enabled, the user can customize the preferred delivery time.
-### Weekly
-The goal of weekly emails is to keep the user active by sending out a number of random, non-archived questions once a week. Sending out an email once a week prevents complete silence of Pulse in case all questions are in states with an offset of more than a week. Answering all questions of the weekly emails within a week rewards the user with an increase in the user's weekly streak. The weekly streak is displayed on the user's home screen next to the active questions and the oldest active question. Answering and not remembering the questions will only drop questions from the long-term state to the final state but will not further affect the question.
+- **Reminder:** contains up to six due, non-archived questions, chosen at random. Questions from an earlier reminder that is still unanswered are not sent again. The email has one link to answer all questions and, when there are several, one link per question.
+- **Weekly selection:** a random choice of non-archived questions, whether due or not (default 6, at most 20). Stepping through the whole selection raises the weekly streak by one. The streak drops to zero if the selection is still unfinished when the next one is due.
+- **Pause:** no reaction to reminders for seven days, or an unfinished weekly selection older than 14 days, pauses all emails for 14 days. Answering any question ends the pause early.
+- **Weekly emails** are only sent while reminders are switched on. Both can be switched off in the settings.
+- **Unsubscribing:** emails carry a `List-Unsubscribe` header. Its link opens a confirmation page instead of unsubscribing directly, because link scanners open links automatically.
 
-Ignoring weekly emails has multiple consequences. If the user does not answer all questions of a weekly email before the next one is sent out, one consequence is that the weekly streak is reset. If the user ignores two weekly emails in a row, the user gets paused, like ignoring too many reminder emails.
+## Links in emails
 
-Weekly emails are enabled by default but can be disabled by the user. They are automatically disabled if reminders and, therefore, emails are disabled entirely. If weeklies are enabled, the user can customize the preferred delivery day, time, and number of maximum selected questions.
-### Pause
-As previously described, users can get paused if they ignore weekly or reminder emails to experience active consequences for not learning. If the user gets pauses, Pulse sends a pause email. The pause email contains a generic description of why email notifications are paused for the user.
+The answer pages behind email links work without signing in. The random tokens in these links grant only what the page needs:
 
-There are multiple ways to get unpaused. If the user starts interacting again with Pulse by answering at least one question, an unpause email is sent welcoming the user back. If the user does not interact with Pulse for two weeks after being paused, he gets unpaused automatically. When the user gets unpaused automatically, an email is sent out stating that Pulse gives the user 'another chance.'
-## Tokens
-Pulse uses different tokens for different access permissions. Web authentication uses random, server-side database sessions in `server/utils/auth.ts` and an HttpOnly, Secure, SameSite=Lax cookie. Existing Lucia sessions remain compatible; Lucia itself has been removed. Sessions have a one-day active window, followed by fourteen days of idle validity, and renew on use after the active window. Cookie-authenticated mutations require a matching Origin header.
-### Magic Link Token
-The magic link token is used for account login by email. For login by email, an email contains a link with the token that authenticates the login and then provides a bearer token. The magic link token is valid for 2 hours.
-### Question Token
-Each question can have a token that allows updating the question. The question is only updated with this token through a reminder email. The reminder email uses this token to allow answering single questions instead of all reminded questions at once. The token is valid indefinitely but will be deleted once the associated question is answered.
-### Third-Party Token
-The third-party token allows reading, adding, and updating questions at the versioned endpoints `/api/v1/`. The embed script uses these endpoints to interact with Pulse; it obtains the token by a six-digit code sent by email (`/api/v1/auth/request` and `/api/v1/auth/verify`). Each token belongs to one user, while a user can have multiple third-party tokens for various websites. The token is valid for 90 days.
-### Reminder Token
-The reminder token enables answering all reminder questions at once without logging in and is used in a reminder email. The token is valid for 30 days.
-### Weekly Token
-The weekly token enables answering all weekly questions at once without logging in and is used in a weekly email. The token is indefinitely valid but will be overwritten after seven days with the one for the following weekly email.
-# Embed
-Websites add Pulse questions with the embed script `public/embed/v2/pulse.js` (served as `/embed/v2/pulse.min.js`). It needs no iframe and no third-party cookies, logs in by email code and also works in local files (`file://`). Markup, configuration, styling and the server API are described in [`docs/embed-v2.md`](docs/embed-v2.md); a demo is at `/embed/v2/demo.html`.
+| Link | Valid |
+|---|---|
+| Reminder ("answer all") | 30 days; each question can be rated once |
+| Single question from a reminder | 30 days, single use; replaced by the next reminder |
+| Weekly selection | until the selection is finished or the next one replaces it |
+| Unsubscribe (all emails / weekly only) | until used; switching emails on again creates a new one |
 
-The original library (`/integrate/pulse.js` and `pulse.css`, login through an `<iframe>`) has been removed. Its markup (`<pulse-page name>`, `<pulse-stack group>`, `<pulse-question question answer>`) is still understood by the embed script. The old addresses under `/integrate/` answer with 410 Gone.
-# Development
-Pulse runs on Node 24 LTS, Nuxt 4, Nuxt UI 4 / Tailwind CSS 4, Prisma 7 with the PostgreSQL driver adapter, and database-backed sessions. `node-cron` schedules non-overlapping minute jobs and stops them on shutdown. Prisma relies on Postgres as a database, which must be provided for development. To be able to develop Pulse further, first rename `.env.example` file to `.env` and modify it to your needs. Then, install all required packages by running `npm ci` and generate the necessary Prisma client by running `npx prisma generate`. Finally, run `npm run dev` to start Pulse in development mode.
+## Research data (optional)
 
-NuxtJS supports both the front end and the back end. The pages of the front end can be found in `/pages`, and visual components that are implemented within the pages can be found in `/components`. The front end accesses REST endpoints provided by the backend, which can be found in `/server/api`. All endpoints dedicated to external use, for example, for the embed script, are placed in the version folder `/server/api/v1` (`v1` is the API version, not the removed original library). All remaining endpoints in `/server/api` are for internal use only. All scheduled tasks like sending emails, disabling active questions, or deleting expired entries can be found in `/server/plugins`. The email footer can be customized in `/server/utils/email.ts`.
+With the user's consent, every answer (in the text, in the web app or from an email) is logged for research on learning (`QuestionLog`). The log is pseudonymous: it holds no account or question ID. Entries are deleted after one year.
 
-The embed script is part of the NuxtJS project. `npm run build` minifies `public/embed/v2/pulse.js` to `pulse.min.js` (`npm run minify-embed`); the minified file is not under version control.
-# Deployment
-Pulse can easily be deployed using the `docker-compose.yml` file, which automatically deploys the web app with the embed script and the required Postgres database. First, copy `.env.example` to `.env` and modify it to your needs. Finally, run `docker-compose up —build -d` and wait a few minutes for the application to build. Pulse will then be available on port 3000.   
+Consent is asked for once, on the answer page after a round of email questions, and only for accounts that are at least 14 days old and have at least five questions. Users can change their decision and delete the logged data in the settings.
 
-Dependency maintenance and the September 2026 migration: [docs/dependencies.md](docs/dependencies.md).
-# Authors and license
-Pulse was written by Florian Seida as part of his bachelor's thesis at the Chair of Privacy and Security in Information Systems (PSI), University of Bamberg. The first commit of this repository is his original version. Since 2026 the chair develops and runs it as psi-pulse.
+## Embed
+
+Websites add questions with the embed script `public/embed/v2/pulse.js` (served as `/embed/v2/pulse.min.js`). It needs no iframe and no third-party cookies, signs in by email code, and also works in local files (`file://`).
+
+- **Documentation:** markup, configuration, styling and the server API are described in [`docs/embed-v2.md`](docs/embed-v2.md).
+- **Demo:** `/embed/v2/demo.html`.
+- **Old library:** the original library (`/integrate/pulse.js`, sign-in through an `<iframe>`) has been removed, and its old addresses answer with 410 Gone. Its markup (`<pulse-page name>`, `<pulse-stack group>`, `<pulse-question question answer>`) is still understood.
+
+## Development
+
+The app runs on Node 24, Nuxt 4 with Nuxt UI 4 (Tailwind CSS 4), Prisma 7 with the PostgreSQL driver adapter, and PostgreSQL 16. The easiest setup is Docker with an empty database and [Mailpit](https://mailpit.axllent.org/) as a mail catcher:
+
+```bash
+cp .env.example .env
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm migrate
+```
+
+The app is then at http://localhost:3000 and Mailpit at http://localhost:8025. To run `npm run dev` without Docker, set the variables listed at the end of `.env.example` directly.
+
+Where things are:
+
+| Path | Contents |
+|---|---|
+| `pages/`, `components/`, `layouts/` | front end |
+| `server/api/` | internal endpoints of the web app |
+| `server/api/v1/` | public API for the embed script (`v1` is the API version) |
+| `server/plugins/` | scheduler for emails and cleanup (node-cron, one run per minute) |
+| `server/utils/email.ts` | email texts |
+| `prisma/` | schema and migrations |
+| `scripts/e2e-*` | end-to-end tests against the local Docker setup (some need Playwright, see [`docs/dependencies.md`](docs/dependencies.md)) |
+
+`npm run build` also minifies the embed script to `pulse.min.js`, which is not under version control. Dependency maintenance and the September 2026 upgrade are described in [`docs/dependencies.md`](docs/dependencies.md).
+
+## Deployment
+
+`docker-compose.yml` runs the app (distroless Node image), a separate migration image and PostgreSQL.
+
+```bash
+cp .env.example .env   # set HOST_URL, DB_PASSWORD, LOGIN_CODE_SECRET (openssl rand -hex 32) and SMTP
+docker compose --profile tools build
+docker compose up -d
+docker compose run --rm migrate   # on first install and after updates with new migrations
+```
+
+- **Port:** the app listens on port 8080 (IPv4). Run it behind a reverse proxy that terminates TLS, and make sure only the proxy can reach port 8080, because the app trusts `X-Forwarded-For`.
+- **Images:** they are tagged with `PULSE_TAG`. `scripts/build-release.sh` builds tagged amd64 images from a clean `main` that has been pushed to GitHub.
+
+## Home page
+
+`landing/` holds the static home page (German and English), the accessibility statement and the page for developers. `python3 landing/build.py` builds it into `landing/dist/`. At pulse.psi.uni-bamberg.de the reverse proxy serves these pages directly and passes everything else to the app, which is why the app's dashboard lives at `/home`. Details: [`landing/README.md`](landing/README.md).
+
+## Authors and license
+
+psi-pulse was written by Florian Seida, under the name Pulse, as part of his bachelor's thesis at the Chair of Privacy and Security in Information Systems (PSI), University of Bamberg. The first commit of this repository is his original version. Since 2026 the chair develops and runs it as psi-pulse.
 
 Licensed under the GNU Affero General Public License v3.0, see [`LICENSE`](LICENSE). If you run a modified version as a network service, you must offer its source code to your users.
 
