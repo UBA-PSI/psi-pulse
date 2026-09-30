@@ -313,7 +313,12 @@ const previousQuestionState = (progress: QuestionProgress): CurrentState => {
     } else if (progress.current_state === "STATE_4") {
         nextState = "STATE_3"
     } else if (progress.current_state === "FINAL") {
-        nextState = "STATE_4"
+        // Spiegelbild von nextQuestionState: aufwärts geht es nur bis zur ersten fehlenden Zwischenstufe, dann zu FINAL.
+        // Abwärts also auf die höchste so erreichbare Stufe; vorher immer STATE_4, auch wenn es die nicht gab (Offset 0).
+        nextState = progress.state_2_id == null ? "STATE_1"
+            : progress.state_3_id == null ? "STATE_2"
+            : progress.state_4_id == null ? "STATE_3"
+            : "STATE_4"
     } else if (progress.current_state === "LONG_TERM") {
         nextState = "FINAL"
     }

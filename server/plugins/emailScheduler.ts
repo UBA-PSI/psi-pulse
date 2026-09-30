@@ -160,7 +160,6 @@ const USER_SELECT = {
 type SchedulerUser = Prisma.UserGetPayload<{ select: typeof USER_SELECT }>
 
 const processUser = async (user: SchedulerUser) => {
-    let pausedThisRun = false // Pause-Mail höchstens einmal, auch wenn Reminder und Weekly beide ignoriert wurden
     if (user.email_paused_until !== null) {
         const now = new Date()
         if (now > user.email_paused_until) {
@@ -206,15 +205,9 @@ const processUser = async (user: SchedulerUser) => {
         const oldestReminderSent = user.oldest_reminder_sent ?? new Date()
         const sevenDaysAgo = new Date(nowDate.getTime() - (7 * 24 * 60 * 60 * 1000))
         if (oldestReminderSent < sevenDaysAgo) {
-            await client.user.update({
-                where: {
-                    id: user.id
-                },
-                data: {
-                    oldest_reminder_sent: null
-                }
-            })
-            if (!pausedThisRun) { pausedThisRun = true; await pauseUserEmails(user.id, user.email, user.name, user.unsubscribe_emails_token) }
+            // Pausiert: in diesem Lauf keine Wochenauswahl mehr (sonst ginge sie direkt nach der Pause-Mail raus)
+            await pauseUserEmails(user)
+            return
         }
 
         // Weekly email
@@ -235,16 +228,7 @@ const processUser = async (user: SchedulerUser) => {
             const oldestWeeklyEmailSent = user.oldest_weekly_sent ?? new Date()
             const fourteenDaysAgo = new Date(nowDate.getTime() - (14 * 24 * 60 * 60 * 1000))
             if (oldestWeeklyEmailSent < fourteenDaysAgo) {
-                await client.user.update({
-                    where: {
-                        id: user.id
-                    },
-                    data: {
-                        oldest_weekly_sent: null,
-                        weekly_streak: 0
-                    }
-                })
-                if (!pausedThisRun) { pausedThisRun = true; await pauseUserEmails(user.id, user.email, user.name, user.unsubscribe_emails_token) }
+                await pauseUserEmails(user)
             } else if (!sameWeek && afterPreferredDeliveryTime && sameDay) {
                 if (user.oldest_weekly_sent != null) {
                     await client.user.update({
@@ -305,17 +289,23 @@ function startScheduler(nitro) {
     }).everyMinute();
 }
 
-const pauseUserEmails = async (userId: string, email: string, name: string, unsubscribeToken: string) => {
+// Pausiert alle Mails für 14 Tage. Beide Zähler zurücksetzen: Blieb der andere stehen (etwa eine offene Wochenauswahl
+// bei einer Pause wegen ignorierter Reminder), war er nach der Pause abgelaufen und das Konto wurde in der Minute nach
+// dem Pausenende erneut pausiert, mit zweiter Pause-Mail. Eine offene Wochenauswahl beendet die Serie wie sonst auch.
+const pauseUserEmails = async (user: SchedulerUser) => {
     const pauseUntil = new Date(new Date().getTime() + (14 * 24 * 60 * 60 * 1000))
     await client.user.update({
         where: {
-            id: userId
+            id: user.id
         },
         data: {
-            email_paused_until: pauseUntil
+            email_paused_until: pauseUntil,
+            oldest_reminder_sent: null,
+            oldest_weekly_sent: null,
+            ...(user.oldest_weekly_sent !== null ? {weekly_streak: 0} : {}),
         }
     })
-    await sendPauseEmail(email, name, unsubscribeToken)
+    await sendPauseEmail(user.email, user.name, user.unsubscribe_emails_token!)
 }
 
 const generateWeeklyEmailContent = async (userId: string, name: string, email: string, unsubscribeWeeklyEmailsToken: string, number: number, oldestSent: Date | null) => {
