@@ -1,10 +1,11 @@
 # CLAUDE.md
 
 Code von Pulse (Nuxt 4, Prisma 7, eigene DB-Sitzungen, Postgres). Ursprünglich Bachelorarbeit von Florian Seida,
-jetzt vom Lehrstuhl PSI gepflegt. Betrieb, Server-Zugang und Befundliste liegen im Ops-Repo
-`psi-pulse-vm` (bis zur Umbenennung: `~/Repositories/psi-pulse`).
+jetzt vom Lehrstuhl PSI gepflegt. Betrieb, Server-Zugang und Befundliste liegen im privaten Ops-Repo
+`~/Repositories/psi-pulse-vm` (`git.psi.uni-bamberg.de/PSI-Admin/psi-pulse-vm`).
 
-- Öffentlich auf GitHub `uba-psi/psi-pulse`. Florians alte GitLab-Historie ist nicht enthalten (sein Wunsch):
+- Öffentlich auf GitHub `UBA-PSI/psi-pulse`. Commit-Messages und Doku sachlich, ohne Details zu Sicherheitslücken;
+  die stehen im Ops-Repo. Florians alte GitLab-Historie ist nicht enthalten (sein Wunsch):
   ein Commit mit Florians Originalstand, ein Commit mit der Weiterentwicklung am Lehrstuhl.
 - Lizenz: AGPL-3.0 (`LICENSE`). Die laufende, veränderte Version muss auf ihren Quelltext verlinken.
 - Keine Produktivdaten lokal verwenden; für Tests eine leere DB mit Migrationen und Testnutzern.
