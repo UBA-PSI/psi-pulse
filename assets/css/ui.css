@@ -20,5 +20,6 @@
   --color-uni-900: #001a30;
   --color-uni-950: #001120;
 }
-:root { --ui-primary: var(--color-uni-500); }
-.dark { --ui-primary: var(--color-uni-400); }
+:root { --ui-primary: var(--color-uni-500); --ui-error: oklch(50.5% 0.213 27.518); /* red-700 */ }
+.dark { --ui-primary: var(--color-uni-400); --ui-error: oklch(80.8% 0.114 19.571); /* red-300 */ }
+/* Fehlerfarbe: Standard ist red-500 (etwa 3,8:1 auf Weiß), zu wenig für kleine Schrift (WCAG 1.4.3, 4,5:1) */

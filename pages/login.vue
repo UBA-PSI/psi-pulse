@@ -4,10 +4,11 @@
       <h1 class="mt-4 mb-10 text-center text-3xl font-bold leading-9 tracking-tight text-gray-900 dark:text-white">
         Log In
       </h1>
-      <UForm ref="form" :state="state" :validate="validate" class="space-y-4 w-80" @submit="onSubmit">
+      <UForm :state="state" :validate="validate" class="space-y-4 w-80" @submit="onSubmit">
         <UFormField label="Email" name="email">
           <UInput v-model="state.email" icon="i-heroicons-envelope" placeholder="you@example.com"/>
         </UFormField>
+        <p v-if="serverError" role="alert" class="text-sm text-left text-error">{{ serverError }}</p>
         <UButton :loading="loading" block type="submit">
           Login
         </UButton>
@@ -21,7 +22,6 @@
 </template>
 
 <script lang="ts" setup>
-import {FetchError} from "ofetch";
 import type {FormError, FormSubmitEvent} from "@nuxt/ui";
 
 useHead({
@@ -47,10 +47,11 @@ const validate = (state: any): FormError[] => {
 }
 
 const loading = ref(false)
-const form = ref()
+const serverError = ref("")
 
 async function onSubmit(event: FormSubmitEvent<any>) {
   loading.value = true
+  serverError.value = ""
   try {
     await $fetch("/api/login", {
       method: "POST",
@@ -61,8 +62,7 @@ async function onSubmit(event: FormSubmitEvent<any>) {
     });
     await navigateTo("/email-verification");
   } catch (e) {
-    const err = e as FetchError;
-    form.value?.setErrors([{"name": "email", "message": err.response._data.message}])
+    serverError.value = serverErrorMessage(e)
   }
   loading.value = false
 }
