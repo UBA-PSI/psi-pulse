@@ -145,6 +145,7 @@ docker compose run --rm migrate   # on first install and after updates with new 
 
 - **Port:** the app listens on port 8080 (IPv4). Run it behind a reverse proxy that terminates TLS, and make sure only the proxy can reach port 8080, because the app trusts `X-Forwarded-For`.
 - **Images:** they are tagged with `PULSE_TAG`. `scripts/build-release.sh` builds tagged amd64 images from a clean `main` that has been pushed to GitHub.
+- **The chair's instance** at pulse.psi.uni-bamberg.de is deployed with a script in a private operations repository. It transfers these images, runs the migrations, restarts the app, checks the live site and publishes the home page. Every deployed version is on GitHub, so the source link in the app always matches what runs.
 
 ## Home page
 

@@ -11,6 +11,13 @@ jetzt vom Lehrstuhl PSI gepflegt. Betrieb, Server-Zugang und Befundliste liegen 
 - Keine Produktivdaten lokal verwenden; für Tests eine leere DB mit Migrationen und Testnutzern.
 - Befund-Kürzel (A0, O10, B2 …) beziehen sich auf `docs/findings.md` und `docs/a11y-microcopy.md` im Ops-Repo.
 - Oberfläche wird zweisprachig (DE/EN). Neue Texte nicht hart kodieren.
-- Deploy auf die VM nur nach Freigabe durch DH, vorher Proxmox-Snapshot (Checkliste im Ops-Repo).
-- Ausgerollt wird nur von `main`: Images mit `scripts/build-release.sh` bauen (bricht auf anderen Branches und bei
-  uncommitteten Änderungen ab). Feature-Branches erst nach `main` mergen, dann bauen.
+- Lokal testen: `docker-compose.dev.yml` (leere DB, Mailpit; Anleitung im README) und `scripts/e2e-*.sh`.
+- Build und Deploy, nur von `main` und nur nach Freigabe durch DH (Details: Runbook 02 im Ops-Repo):
+  1. Feature-Branches nach `main` mergen, `git push origin main`.
+  2. `scripts/build-release.sh`: baut `pulse-app:<hash>` und `pulse-migrate:<hash>` für amd64; bricht ab bei anderem
+     Branch, uncommitteten Änderungen oder wenn `main` nicht auf GitHub liegt (AGPL-Quelltext-Link).
+  3. Proxmox-Snapshot `pre-deploy-<hash>` (DH).
+  4. `~/Repositories/psi-pulse-vm/scripts/deploy.sh -n` (prüft nur), dann `scripts/deploy.sh` (ohne Terminal, z. B. über
+     `!`: `--snapshot-ok`). Das Skript macht Dump, Übertragung, Migration, Neustart, Live-Prüfung und Startseite.
+     Rückweg: `scripts/deploy.sh --rollback <voriger Tag>`.
+  Schreibende Befehle auf VM und bew startet DH selbst; Claude baut, testet und prüft mit `-n`.
