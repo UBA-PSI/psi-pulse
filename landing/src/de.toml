@@ -142,7 +142,7 @@ bg_ebbinghaus = "Ebbinghaus hat 1885 die Vergessenskurve als Erster gemessen; Mu
 bg_roediger = "Sich selbst abfragen führt zu deutlich besserem Behalten als erneutes Lernen."
 bg_cepeda = "Verteiltes Lernen wirkt; der beste Abstand wächst mit der Zeit, über die man etwas behalten will."
 bg_dunlosky = "Von zehn Lerntechniken erhalten nur Selbsttests und verteiltes Lernen die Bewertung „hoher Nutzen“."
-bg_origin = "psi-pulse ist in einer Bachelorarbeit am Lehrstuhl PSI entstanden (Florian Seida) und wird vom Lehrstuhl weiterentwickelt und betrieben. Der Quelltext steht auf <a href=\"https://github.com/UBA-PSI/psi-pulse\">GitHub</a>."
+bg_origin = "psi-pulse ist in einem Projekt am Lehrstuhl PSI entstanden (Florian Seida) und wird vom Lehrstuhl weiterentwickelt und betrieben. Der Quelltext steht auf <a href=\"https://github.com/UBA-PSI/psi-pulse\">GitHub</a>."
 
 cta_title = "Mit psi-pulse wiederholen"
 cta_signup = "Konto anlegen"

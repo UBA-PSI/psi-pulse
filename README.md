@@ -153,7 +153,7 @@ docker compose run --rm migrate   # on first install and after updates with new 
 
 ## Authors and license
 
-psi-pulse was written by Florian Seida, under the name Pulse, as part of his bachelor's thesis at the Chair of Privacy and Security in Information Systems (PSI), University of Bamberg. The first commit of this repository is his original version. Since 2026 the chair develops and runs it as psi-pulse.
+psi-pulse was written by Florian Seida, under the name Pulse, as part of a project at the Chair of Privacy and Security in Information Systems (PSI), University of Bamberg. The first commit of this repository is his original version. Since 2026 the chair develops and runs it as psi-pulse.
 
 Licensed under the GNU Affero General Public License v3.0, see [`LICENSE`](LICENSE). If you run a modified version as a network service, you must offer its source code to your users.
 

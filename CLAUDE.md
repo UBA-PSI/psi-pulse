@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Code von Pulse (Nuxt 4, Prisma 7, eigene DB-Sitzungen, Postgres). Ursprünglich Bachelorarbeit von Florian Seida,
+Code von Pulse (Nuxt 4, Prisma 7, eigene DB-Sitzungen, Postgres). Ursprünglich ein Projekt von Florian Seida,
 jetzt vom Lehrstuhl PSI gepflegt. Betrieb, Server-Zugang und Befundliste liegen im privaten Ops-Repo
 `~/Repositories/psi-pulse-vm` (`git.psi.uni-bamberg.de/PSI-Admin/psi-pulse-vm`).
 

@@ -142,7 +142,7 @@ bg_ebbinghaus = "Ebbinghaus was the first to measure the forgetting curve in 188
 bg_roediger = "Testing yourself leads to much better retention than studying again."
 bg_cepeda = "Spaced practice works; the best gap grows with how long you want to remember."
 bg_dunlosky = "Of ten study techniques, only practice testing and spaced practice are rated “high utility”."
-bg_origin = "psi-pulse was created in a bachelor’s thesis at the PSI chair (Florian Seida) and is developed further and run by the chair. The source code is on <a href=\"https://github.com/UBA-PSI/psi-pulse\">GitHub</a>."
+bg_origin = "psi-pulse was created in a project at the PSI chair (Florian Seida) and is developed further and run by the chair. The source code is on <a href=\"https://github.com/UBA-PSI/psi-pulse\">GitHub</a>."
 
 cta_title = "Review with psi-pulse"
 cta_signup = "Create account"
