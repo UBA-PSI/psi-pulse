@@ -11,7 +11,7 @@ heading = "psi-pulse in eigene Seiten einbauen"
 
 intro = '''
 <p class="doc-lead">Diese Seite richtet sich an Lehrende, die Wiederholungsfragen in ihre eigenen Webseiten einbauen möchten, und an alle, die das technisch umsetzen. Sie brauchen dafür eine Zeile JavaScript und etwas HTML, aber keinen eigenen Server und kein Konto bei psi-pulse.</p>
-<p>psi-pulse steht auch Lehrenden anderer Hochschulen offen. Wir betreiben den Dienst nach bestem Bemühen, ohne Zusage zu Verfügbarkeit oder Support. Ob Sie ihn in Ihrer Lehre einsetzen dürfen, klären Sie bitte mit dem Datenschutz Ihrer Hochschule. Wie das Ergebnis aussieht, zeigt die <a href="/embed/v2/demo.html">Demo-Seite</a>, auch in mehreren Gestaltungen.</p>
+<p>psi-pulse steht auch Lehrenden anderer Hochschulen offen. Wir betreiben den Dienst nach bestem Bemühen, ohne Zusage zu Verfügbarkeit oder Support. Ob Sie ihn in Ihrer Lehre einsetzen dürfen, klären Sie bitte mit dem Datenschutz Ihrer Hochschule. Der Quelltext liegt offen auf <a href="https://github.com/UBA-PSI/psi-pulse">GitHub</a> (AGPL-3.0), Sie können psi-pulse also auch selbst betreiben. Wie das Ergebnis aussieht, zeigt die <a href="/embed/v2/demo.html">Demo-Seite</a>, auch in mehreren Gestaltungen.</p>
 '''
 toc_h = "Inhalt"
 

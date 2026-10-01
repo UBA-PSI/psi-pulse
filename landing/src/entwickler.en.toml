@@ -7,7 +7,7 @@ heading = "Embedding psi-pulse in your own pages"
 
 intro = '''
 <p class="doc-lead">This page is for teachers who want to add review questions to their own web pages, and for anyone who builds that. You need one line of JavaScript and some HTML, but no server of your own and no psi-pulse account.</p>
-<p>psi-pulse is open to teachers at other universities too. We run the service on a best-effort basis, without any commitment to availability or support. Please check with your university’s data protection office whether you may use it in your teaching. The <a href="/embed/v2/demo.html">demo page</a> shows the result, in several designs.</p>
+<p>psi-pulse is open to teachers at other universities too. We run the service on a best-effort basis, without any commitment to availability or support. Please check with your university’s data protection office whether you may use it in your teaching. The source code is on <a href="https://github.com/UBA-PSI/psi-pulse">GitHub</a> (AGPL-3.0), so you can also run psi-pulse yourself. The <a href="/embed/v2/demo.html">demo page</a> shows the result, in several designs.</p>
 '''
 toc_h = "Contents"
 
