@@ -11,7 +11,7 @@ heading = "psi-pulse in eigene Seiten einbauen"
 
 intro = '''
 <p class="doc-lead">Diese Seite richtet sich an Lehrende, die Wiederholungsfragen in ihre eigenen Webseiten einbauen möchten, und an alle, die das technisch umsetzen. Sie brauchen dafür eine Zeile JavaScript und etwas HTML, aber keinen eigenen Server und kein Konto bei psi-pulse.</p>
-<p>psi-pulse steht auch Lehrenden anderer Hochschulen offen. Wir betreiben den Dienst nach bestem Bemühen, ohne Zusage zu Verfügbarkeit oder Support. Ob Sie ihn in Ihrer Lehre einsetzen dürfen, klären Sie bitte mit dem Datenschutz Ihrer Hochschule. Der Quelltext liegt offen auf <a href="https://github.com/UBA-PSI/psi-pulse">GitHub</a> (AGPL-3.0), Sie können psi-pulse also auch selbst betreiben. Wie das Ergebnis aussieht, zeigt die <a href="/embed/v2/demo.html">Demo-Seite</a>, auch in mehreren Gestaltungen.</p>
+<p>psi-pulse steht auch Lehrenden anderer Hochschulen offen. Wir betreiben den Dienst nach bestem Bemühen, ohne Zusage zu Verfügbarkeit oder Support. Ob Sie ihn in Ihrer Lehre einsetzen dürfen, stimmen Sie bitte mit den Datenschutzbeauftragten Ihrer Hochschule ab. Der Quelltext liegt offen auf <a href="https://github.com/UBA-PSI/psi-pulse">GitHub</a> (AGPL-3.0), Sie können psi-pulse also auch selbst betreiben. Wie das Ergebnis aussieht, zeigt die <a href="/embed/v2/demo.html">Demo-Seite</a>, auch in mehreren Gestaltungen.</p>
 '''
 toc_h = "Inhalt"
 
@@ -99,7 +99,7 @@ behave = '''
 privacy_h = "Datenschutz und Voraussetzungen"
 privacy = '''
 <p>Ohne Anmeldung überträgt das Skript nichts an psi-pulse. Laden Sie das Skript vom Server von psi-pulse (Variante 1), ruft der Browser dort nur die Skriptdatei ab. Das Skript setzt keine Cookies, bindet kein iframe ein und nutzt keine Tracker. Mit Anmeldung gelten die <a href="/privacy-policy">Datenschutzhinweise von psi-pulse</a>; gespeichert werden die E-Mail-Adresse, auf Wunsch ein Name, Fragen und Antworttexte, Seitenname und Seitenadresse sowie ob eine Antwort gewusst war.</p>
-<p>Erwähnen Sie psi-pulse in den Datenschutzhinweisen Ihrer Seite, und klären Sie mit dem Datenschutz Ihrer Hochschule, ob Sie den Dienst einsetzen dürfen.</p>
+<p>Erwähnen Sie psi-pulse in den Datenschutzhinweisen Ihrer Seite, und stimmen Sie mit den Datenschutzbeauftragten Ihrer Hochschule ab, ob Sie den Dienst einsetzen dürfen.</p>
 <p>Hat Ihre Seite eine Content Security Policy (CSP, eine Liste erlaubter Quellen im HTTP-Header), braucht sie zwei Einträge:</p>
 <ul>
 <li><code>script-src https://pulse.psi.uni-bamberg.de</code>, oder bei einem direkt eingefügten Skript dessen Hash bzw. <code>'unsafe-inline'</code>,</li>

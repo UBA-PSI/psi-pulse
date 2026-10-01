@@ -111,34 +111,32 @@
 </section>
 
 <section class="section section--band" id="ausprobieren" aria-labelledby="ausprobieren-h">
-  <div class="wrap">
-    <header class="head">
-      <p class="kicker">{{ try_kicker }}</p>
-      <h2 id="ausprobieren-h">{{ try_title }}</h2>
-      <p class="lede">{{ try_lead }}</p>
-    </header>
-    <div class="band">
-      <div class="words">
-        <p>{{ try_note }}</p>
-      </div>
-      <div class="stage">
-        <div class="demo">
-          <pulse-deck group="{{ demo_group }}">
-            <pulse-question key="landing-abstaende">
-              <p>{{ demo_q1 }}</p>
-              <details><summary>{{ demo_answer }}</summary><p>{{ demo_a1 }}</p></details>
-            </pulse-question>
-            <pulse-question key="landing-testeffekt">
-              <p>{{ demo_q2 }}</p>
-              <details><summary>{{ demo_answer }}</summary><p>{{ demo_a2 }}</p></details>
-            </pulse-question>
-            <pulse-question key="landing-mnemonic-medium">
-              <p>{{ demo_q3 }}</p>
-              <details><summary>{{ demo_answer }}</summary><p>{{ demo_a3 }}</p></details>
-            </pulse-question>
-          </pulse-deck>
-          <pulse-summary compact></pulse-summary>
-        </div>
+  <div class="wrap band band--top">
+    <div class="words">
+      <header class="head">
+        <p class="kicker">{{ try_kicker }}</p>
+        <h2 id="ausprobieren-h">{{ try_title }}</h2>
+        <p class="lede">{{ try_lead }}</p>
+      </header>
+      <p>{{ try_note }}</p>
+    </div>
+    <div class="stage">
+      <div class="demo">
+        <pulse-deck group="{{ demo_group }}">
+          <pulse-question key="landing-abstaende">
+            <p>{{ demo_q1 }}</p>
+            <details><summary>{{ demo_answer }}</summary><p>{{ demo_a1 }}</p></details>
+          </pulse-question>
+          <pulse-question key="landing-testeffekt">
+            <p>{{ demo_q2 }}</p>
+            <details><summary>{{ demo_answer }}</summary><p>{{ demo_a2 }}</p></details>
+          </pulse-question>
+          <pulse-question key="landing-mnemonic-medium">
+            <p>{{ demo_q3 }}</p>
+            <details><summary>{{ demo_answer }}</summary><p>{{ demo_a3 }}</p></details>
+          </pulse-question>
+        </pulse-deck>
+        <pulse-summary compact></pulse-summary>
       </div>
     </div>
   </div>
