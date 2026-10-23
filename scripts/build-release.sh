@@ -13,6 +13,8 @@ git fetch -q origin main
 [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] || { echo "Abbruch: main ist nicht gepusht (git push origin main)." >&2; exit 1; }
 
 T=$(git rev-parse --short HEAD)
-docker buildx build --platform linux/amd64 --target runtime -t "pulse-app:$T" --load .
-docker buildx build --platform linux/amd64 --target migrate -t "pulse-migrate:$T" --load .
+# Immer frisch: --pull holt die aktuellen Basis-Images (Node, Debian, CA-Zertifikate), --no-cache verhindert,
+# dass alte Layer aus einem früheren Build wiederverwendet werden.
+docker buildx build --pull --no-cache --platform linux/amd64 --target runtime -t "pulse-app:$T" --load .
+docker buildx build --pull --no-cache --platform linux/amd64 --target migrate -t "pulse-migrate:$T" --load .
 echo "Gebaut: pulse-app:$T pulse-migrate:$T (main)"
